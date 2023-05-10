@@ -14,6 +14,7 @@ class Simulation:
         self.height = height
 
         self.boids = self.init_boids()
+        self.predators = self.init_predators()
         self.canvas = self.init_pygame()
 
     def init_boids(self):
@@ -51,6 +52,28 @@ class Simulation:
             pygame.draw.circle(self.canvas, (255,0,0), pos, 3)
             pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 3)
             #pygame.draw.rect(self.canvas, (0,0,255), rectangle)
+            
+    def init_predators(self):
+        # Define model parameters
+        num_predators = 10
+        alignment_distance = 50
+        cohesion_distance = 100
+        separation_distance = 25 #25
+        vision_distance = None
+        alignment_strength = 0.1
+        cohesion_strength = 0.001
+        separation_strength = 0.05
+        noise_strength = 0.1
+        max_velocity = 5    
+
+        # Create Boids object
+        boids = Predator.Predators(num_boids = num_predators, width = width, height = height, \
+            alignment_distance = alignment_distance, cohesion_distance = cohesion_distance, \
+            separation_distance = separation_distance, alignment_strength = alignment_strength, \
+            cohesion_strength = cohesion_strength, separation_strength = separation_strength, \
+            max_velocity = max_velocity)
+        
+        return boids
 
     def init_pygame(self):
         pygame.init()
@@ -95,7 +118,6 @@ class Simulation:
                     if event.type == pygame.QUIT:
                         exit = True
                             
-
                 self.canvas.fill((255,255,255))
 
                 simulation.draw_prey(positions, velocities)
