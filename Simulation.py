@@ -1,5 +1,6 @@
 import pygame
 import time
+import numpy as np
 
 import Prey
 import Predator
@@ -36,6 +37,20 @@ class Simulation:
             max_velocity = max_velocity)
         
         return boids
+
+    def draw_prey(self, positions, velocities):
+        shape = pygame.Surface([20,20])
+
+        for pos, vel in zip(positions, velocities):
+            #angle = np.angle(vel, deg=True)
+            #x, y = pos
+            #shape = pygame.Rect(x, y, 5, 10)
+            #angled_shape = pygame.transform.rotate(shape, angle)
+            #rectangle = angled_shape.get_rect()
+
+            pygame.draw.circle(self.canvas, (255,0,0), pos, 3)
+            pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 3)
+            #pygame.draw.rect(self.canvas, (0,0,255), rectangle)
 
     def init_pygame(self):
         pygame.init()
@@ -74,15 +89,16 @@ class Simulation:
             exit = False
 
             while not exit:
-                positions = self.boids.step_no_save()
+                positions, velocities = self.boids.step_pygame()
+
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         exit = True
                             
 
                 self.canvas.fill((255,255,255))
-                for pos in positions:
-                    pygame.draw.circle(self.canvas, (255,0,0), pos, 3)
+
+                simulation.draw_prey(positions, velocities)
 
                 pygame.display.update()
 

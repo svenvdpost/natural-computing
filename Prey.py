@@ -66,7 +66,7 @@ class Boids:
         self.positions_over_time.append(self.positions.copy())
         self.velocities_over_time.append(self.velocities.copy())
     
-    def step_no_save(self):
+    def step_pygame(self):
         distances = self.get_distances()
 
         alignment = self.alignment_rule(distances)
@@ -81,7 +81,7 @@ class Boids:
         self.limit_velocity()
         self.positions = self.wrap(self.positions + self.velocities)
 
-        return self.positions
+        return self.positions, self.velocities
 
     def get_distances(self):
         return np.sqrt(np.sum((self.positions[:, np.newaxis] - self.positions) ** 2, axis=2))
