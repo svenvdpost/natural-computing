@@ -13,13 +13,13 @@ class Simulation:
         self.width = width
         self.height = height
 
-        self.boids = self.init_boids()
-        #self.predators = self.init_predators()
+        self.prey = self.init_prey()        
+        self.predators = self.init_predators()
         self.canvas = self.init_pygame()
 
-    def init_boids(self):
+    def init_prey(self):
         # Define model parameters
-        num_boids = 100
+        num_prey = 100
         alignment_distance = 50
         cohesion_distance = 100
         separation_distance = 25 #25
@@ -31,8 +31,8 @@ class Simulation:
         max_velocity = 5    
 
         # Create Boids object
-        boids = Prey.Boids(num_boids, width, height, alignment_distance, cohesion_distance, separation_distance,
-                           alignment_strength, cohesion_strength, separation_strength, max_velocity)
+        boids = Prey.Boids(num_prey, width, height, alignment_distance, cohesion_distance, separation_distance,
+                            vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
         
         return boids
 
@@ -65,9 +65,15 @@ class Simulation:
 
         # Create Boids object
         boids = Predator.Predator(num_pred, width, height, alignment_distance, cohesion_distance, separation_distance,
-                                  alignment_strength, cohesion_strength, separation_strength, max_velocity)
+                                  vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
         
         return boids
+
+    def draw_predators(self, positions, velocities):
+        for pos, vel in zip(positions, velocities):
+
+            pygame.draw.circle(self.canvas, (0,0,255), pos, 5)
+            pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 5)
 
     def init_pygame(self):
         pygame.init()
@@ -79,12 +85,13 @@ class Simulation:
 
     def render_and_run(self, steps):
 
-        positions, velocities = self.boids.run_simulation(steps)
+        prey_positions, prey_velocities = self.prey.run_simulation(steps)
+        pred_positions, pred_velocities = self.predators.run_simulation(steps)
         exit = False
 
         while not exit:
 
-            for t in positions:
+            for prey_pos, prey_velo, pred_pos, pred_velo in zip(prey_positions, prey_velocities, pred_positions, pred_velocities):
 
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -94,8 +101,9 @@ class Simulation:
                     break
 
                 self.canvas.fill((255,255,255))
-                for pos in t:
-                    pygame.draw.circle(self.canvas, (255,0,0), pos, 3)
+
+                simulation.draw_prey(prey_pos, prey_velo)
+                simulation.draw_predators(pred_pos, pred_velo)
 
                 pygame.display.update()
 
@@ -106,15 +114,18 @@ class Simulation:
             exit = False
 
             while not exit:
-                positions, velocities = self.boids.step_pygame()
-
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         exit = True
-                            
+
+                # reset the canvas
                 self.canvas.fill((255,255,255))
 
+                positions, velocities = self.prey.step_pygame()                            
                 simulation.draw_prey(positions, velocities)
+
+                positions, velocities = self.predators.step_pygame()                            
+                simulation.draw_predators(positions, velocities)             
 
                 pygame.display.update()
 
