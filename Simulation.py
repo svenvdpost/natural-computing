@@ -8,7 +8,6 @@ import Predator
 
 class Simulation:
 
-
     def __init__(self, width, height) -> None:
         self.width = width
         self.height = height
@@ -63,7 +62,7 @@ class Simulation:
         noise_strength = 0.1
         max_velocity = 5    
 
-        # Create Boids object
+        # Create Predator object
         boids = Predator.Predator(num_pred, width, height, alignment_distance, cohesion_distance, separation_distance,
                                   vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
         
