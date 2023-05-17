@@ -14,7 +14,7 @@ class Simulation:
         self.height = height
 
         self.boids = self.init_boids()
-        self.predators = self.init_predators()
+        #self.predators = self.init_predators()
         self.canvas = self.init_pygame()
 
     def init_boids(self):
@@ -52,7 +52,7 @@ class Simulation:
             pygame.draw.circle(self.canvas, (255,0,0), pos, 3)
             pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 3)
             #pygame.draw.rect(self.canvas, (0,0,255), rectangle)
-            
+
     def init_predators(self):
         # Define model parameters
         num_predators = 10
