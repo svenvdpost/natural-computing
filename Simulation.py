@@ -31,11 +31,8 @@ class Simulation:
         max_velocity = 5    
 
         # Create Boids object
-        boids = Prey.Boids(num_boids = num_boids, width = width, height = height, \
-            alignment_distance = alignment_distance, cohesion_distance = cohesion_distance, \
-            separation_distance = separation_distance, alignment_strength = alignment_strength, \
-            cohesion_strength = cohesion_strength, separation_strength = separation_strength, \
-            max_velocity = max_velocity)
+        boids = Prey.Boids(num_boids, width, height, alignment_distance, cohesion_distance, separation_distance,
+                           alignment_strength, cohesion_strength, separation_strength, max_velocity)
         
         return boids
 
@@ -55,10 +52,10 @@ class Simulation:
             
     def init_predators(self):
         # Define model parameters
-        num_predators = 10
+        num_pred = 10
         alignment_distance = 50
         cohesion_distance = 100
-        separation_distance = 25 #25
+        separation_distance = 25
         vision_distance = None
         alignment_strength = 0.1
         cohesion_strength = 0.001
@@ -67,11 +64,8 @@ class Simulation:
         max_velocity = 5    
 
         # Create Boids object
-        boids = Predator.Predator(num_boids = num_predators, width = width, height = height, \
-            alignment_distance = alignment_distance, cohesion_distance = cohesion_distance, \
-            separation_distance = separation_distance, alignment_strength = alignment_strength, \
-            cohesion_strength = cohesion_strength, separation_strength = separation_strength, \
-            max_velocity = max_velocity)
+        boids = Predator.Predator(num_pred, width, height, alignment_distance, cohesion_distance, separation_distance,
+                                  alignment_strength, cohesion_strength, separation_strength, max_velocity)
         
         return boids
 

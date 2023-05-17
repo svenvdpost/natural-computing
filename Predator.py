@@ -4,18 +4,18 @@ import numpy as np
 
 class Predator:
     def __init__(self,
-                 num_boids=10,
-                 width=1000,
-                 height=1000,
-                 alignment_distance=50,
-                 cohesion_distance=100,
-                 separation_distance=25,
-                 vision_distance=None,
-                 alignment_strength=0.1,
-                 cohesion_strength=0.001,
-                 separation_strength=0.5,
-                 noise_strength=0.2,
-                 max_velocity=5):
+                 num_boids,
+                 width,
+                 height,
+                 alignment_distance,
+                 cohesion_distance,
+                 separation_distance,
+                 vision_distance,
+                 alignment_strength,
+                 cohesion_strength,
+                 separation_strength,
+                 noise_strength,
+                 max_velocity):
 
         self.num_boids = num_boids
         # self.positions = np.random.uniform(low=[-width/2, -height/2], high=[width/2, height/2], size=(num_boids, 2))
