@@ -4,7 +4,7 @@ import numpy as np
 
 import Prey
 import Predator
-import Boid
+import Boids
 
 class Simulation:
 

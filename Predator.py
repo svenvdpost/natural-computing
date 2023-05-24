@@ -1,8 +1,8 @@
 # Working version
 import numpy as np
-import Boid
+import Boids
 
-class Predators(Boid.Boids):
+class Predators(Boids.Boids):
     def __init__(self, 
                  num_boids, 
                  width, 
