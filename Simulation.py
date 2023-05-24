@@ -22,7 +22,7 @@ class Simulation:
         alignment_distance = 50
         cohesion_distance = 100
         separation_distance = 25 #25
-        vision_distance = None
+        #vision_distance = None
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
@@ -31,7 +31,7 @@ class Simulation:
 
         # Create Boids object
         boids = Prey.Boids(num_prey, width, height, alignment_distance, cohesion_distance, separation_distance,
-                            vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
+                             alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity) #vision_distance, removed
         
         return boids
 
@@ -64,7 +64,7 @@ class Simulation:
 
         # Create Predator object
         boids = Predator.Predator(num_pred, width, height, alignment_distance, cohesion_distance, separation_distance,
-                                  vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
+                                   vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity) # vision_distance, removed
         
         return boids
 
@@ -112,6 +112,12 @@ class Simulation:
 
             exit = False
 
+            prey_positions = self.prey.positions
+            prey_velocities = self.prey.velocities
+
+            predators_positions = self.predators.positions
+            predators_velocities = self.predators.velocities
+
             while not exit:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -120,11 +126,11 @@ class Simulation:
                 # reset the canvas
                 self.canvas.fill((255,255,255))
 
-                positions, velocities = self.prey.step_pygame()                            
-                simulation.draw_prey(positions, velocities)
+                prey_positions, prey_velocities = self.prey.step_pygame(predators_positions, predators_velocities)                            
+                simulation.draw_prey(prey_positions, prey_velocities)
 
-                positions, velocities = self.predators.step_pygame()                            
-                simulation.draw_predators(positions, velocities)             
+                predators_positions, predators_velocities = self.predators.step_pygame()   # prey_positions, prey_velocities                         
+                simulation.draw_predators(predators_positions, predators_velocities)             
 
                 pygame.display.update()
 

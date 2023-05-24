@@ -9,10 +9,12 @@ class Boids:
                  alignment_distance = 50, 
                  cohesion_distance = 100, 
                  separation_distance = 25, 
-                 vision_distance = None,
+                 dodging_distance = 50,
+                 #vision_distance = None,
                  alignment_strength = 0.1, 
                  cohesion_strength = 0.001, 
                  separation_strength = 0.5, 
+                 dodging_strength = 0.5,
                  noise_strength = 0.2,
                  max_velocity = 5):
       
@@ -27,18 +29,20 @@ class Boids:
         self.alignment_distance = alignment_distance 
         self.cohesion_distance = cohesion_distance 
         self.separation_distance = separation_distance 
+        self.dodging_distance = dodging_distance
         self.alignment_strength = alignment_strength 
         self.cohesion_strength = cohesion_strength 
         self.separation_strength = separation_strength 
+        self.dodging_strength = dodging_strength
         self.noise_strength = noise_strength
         
-        if vision_distance != None:
-            self.alignment_distance = vision_distance
-            self.cohesion_distance = vision_distance
-            self.separation_distance = vision_distance
-            self.alignment_strength = vision_distance
-            self.cohesion_strength = vision_distance
-            self.separation_strength = vision_distance
+#            if vision_distance != None:
+#                self.alignment_distance = vision_distance
+#                self.cohesion_distance = vision_distance
+#                self.separation_distance = vision_distance
+#                self.alignment_strength = vision_distance
+#                self.cohesion_strength = vision_distance
+#                self.separation_strength = vision_distance
 
 
         self.max_velocity = max_velocity 
@@ -66,7 +70,8 @@ class Boids:
         self.positions_over_time.append(self.positions.copy())
         self.velocities_over_time.append(self.velocities.copy())
     
-    def step_pygame(self):
+    def step_pygame(self, predator_positions, predator_velocities):
+        print(predator_positions)
         distances = self.get_distances()
 
         alignment = self.alignment_rule(distances)
