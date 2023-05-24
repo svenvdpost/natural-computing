@@ -37,9 +37,9 @@ class Predators(Boid.Boids):
         cohesion = self.cohesion_rule(distances)
         separation = self.separation_rule(distances)
 
-        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_predators, 2))   * self.noise_strength) * self.alignment_strength
-        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_predators, 2))    * self.noise_strength) * self.cohesion_strength
-        separation_correction = (separation + np.random.uniform(-1,1, (self.num_predators, 2)) * self.noise_strength) * self.separation_strength
+        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength) * self.alignment_strength
+        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength) * self.cohesion_strength
+        separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.separation_strength
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction
         self.limit_velocity()
@@ -54,9 +54,9 @@ class Predators(Boid.Boids):
         cohesion = self.cohesion_rule(distances)
         separation = self.separation_rule(distances)
 
-        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_predators, 2))   * self.noise_strength) * self.alignment_strength
-        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_predators, 2))    * self.noise_strength) * self.cohesion_strength
-        separation_correction = (separation + np.random.uniform(-1,1, (self.num_predators, 2)) * self.noise_strength) * self.separation_strength
+        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength) * self.alignment_strength
+        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength) * self.cohesion_strength
+        separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.separation_strength
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction
         self.limit_velocity()
