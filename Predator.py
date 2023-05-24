@@ -28,6 +28,10 @@ class Predators(Boids.Boids):
                         separation_strength, 
                         noise_strength,
                         max_velocity)
+        
+        vision_trait = [10]*num_boids
+        speed_trait = [10]*num_boids
+        self.traits['vision', 'speed'] = vision_trait, speed_trait
     
     def step_pygame(self):
         distances = self.get_distances()

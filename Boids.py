@@ -14,7 +14,8 @@ class Boids:
                  cohesion_strength, 
                  separation_strength, 
                  noise_strength,
-                 max_velocity):
+                 max_velocity
+                 ):
       
         self.num_boids = num_boids
         self.positions = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))        
@@ -45,6 +46,8 @@ class Boids:
 
         # Optimization        
         self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance), ("separation", self.separation_distance)], key=lambda x: x[1])
+
+        self.traits = {}
 
     def step(self):
 
