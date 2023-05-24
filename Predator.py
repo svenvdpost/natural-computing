@@ -35,6 +35,7 @@ class Predators(Boids.Boids):
         speed_trait = [10]*num_boids
         self.traits['vision', 'speed'] = vision_trait, speed_trait
     
+    #TODO: implent hunting component
     def step_pygame(self):
         distances = self.get_distances()
 
