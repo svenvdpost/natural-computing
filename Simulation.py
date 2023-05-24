@@ -30,7 +30,7 @@ class Simulation:
         max_velocity = 5    
 
         # Create Boids object
-        boids = Prey.Boids(num_prey, width, height, alignment_distance, cohesion_distance, separation_distance,
+        boids = Prey.Prey(num_prey, width, height, alignment_distance, cohesion_distance, separation_distance,
                             vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
         
         return boids
