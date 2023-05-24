@@ -17,6 +17,7 @@ class Simulation:
         self.predators = self.init_predators()
         self.canvas = self.init_pygame()
 
+    # ---- PREY ------
     def init_prey(self):
         # Define model parameters
         num_prey = 100
@@ -50,6 +51,7 @@ class Simulation:
             pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 3)
             #pygame.draw.rect(self.canvas, (0,0,255), rectangle)
 
+    # ---- PREDATORS ------
     def init_predators(self):
         # Define model parameters
         num_pred = 10
@@ -75,6 +77,7 @@ class Simulation:
             pygame.draw.circle(self.canvas, (0,0,255), pos, 5)
             pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 5)
 
+    # ---- CANVAS -----
     def init_pygame(self):
         pygame.init()
         canvas = pygame.display.set_mode((self.width, self.height))
@@ -83,6 +86,7 @@ class Simulation:
         return canvas
 
 
+    # ---- RUNING THE SIMULATION -----
     def render_and_run(self, steps):
 
         prey_positions, prey_velocities = self.prey.run_simulation(steps)
@@ -130,6 +134,9 @@ class Simulation:
                 pygame.display.update()
 
                 time.sleep(0.05)
+
+    # ---- GENETIC ALGORITHMS -----
+    
 
 
 if __name__ == "__main__":
