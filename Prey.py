@@ -1,7 +1,7 @@
 # Working version
 import numpy as np
 
-class Boids:
+class Prey:
     def __init__(self, 
                  num_boids = 100, 
                  width = 1000, 

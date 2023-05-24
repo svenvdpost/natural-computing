@@ -1,38 +1,37 @@
 # Working version
 import numpy as np
 
-
-class Predator:
-    def __init__(self,
-                 num_boids,
-                 width,
-                 height,
-                 alignment_distance,
-                 cohesion_distance,
-                 separation_distance,
-                 vision_distance,
-                 alignment_strength,
-                 cohesion_strength,
-                 separation_strength,
-                 noise_strength,
-                 max_velocity):
-
-        self.num_boids = num_boids
-        # self.positions = np.random.uniform(low=[-width/2, -height/2], high=[width/2, height/2], size=(num_boids, 2))
-        self.positions = np.random.uniform(low=[0, 0], high=[width, height], size=(num_boids, 2))
-        # self.velocities = np.random.uniform(low=[-width/2, -height/2], high=[width/2, height/2], size=(num_boids, 2))
-        self.velocities = np.random.uniform(low=[0, 0], high=[width, height], size=(num_boids, 2))
+class Predators:
+    def __init__(self, 
+                 num_predators = 10, 
+                 width = 10000, 
+                 height = 10000, 
+                 alignment_distance = 50, 
+                 cohesion_distance = 100, 
+                 separation_distance = 25, 
+                 vision_distance = None,
+                 alignment_strength = 0.1, 
+                 cohesion_strength = 0.001, 
+                 separation_strength = 0.5, 
+                 noise_strength = 0.2,
+                 max_velocity = 5):
+      
+        self.num_predators = num_predators
+        #self.positions = np.random.uniform(low=[-width/2, -height/2], high=[width/2, height/2], size=(num_predators, 2))
+        self.positions = np.random.uniform(low=[0,0], high=[width, height], size=(num_predators, 2))        
+        #self.velocities = np.random.uniform(low=[-width/2, -height/2], high=[width/2, height/2], size=(num_predators, 2))
+        self.velocities = np.random.uniform(low=[0,0], high=[width, height], size=(num_predators, 2))
         self.width = width
         self.height = height
 
-        self.alignment_distance = alignment_distance
-        self.cohesion_distance = cohesion_distance
-        self.separation_distance = separation_distance
-        self.alignment_strength = alignment_strength
-        self.cohesion_strength = cohesion_strength
-        self.separation_strength = separation_strength
+        self.alignment_distance = alignment_distance 
+        self.cohesion_distance = cohesion_distance 
+        self.separation_distance = separation_distance 
+        self.alignment_strength = alignment_strength 
+        self.cohesion_strength = cohesion_strength 
+        self.separation_strength = separation_strength 
         self.noise_strength = noise_strength
-
+        
         if vision_distance != None:
             self.alignment_distance = vision_distance
             self.cohesion_distance = vision_distance
@@ -41,13 +40,13 @@ class Predator:
             self.cohesion_strength = vision_distance
             self.separation_strength = vision_distance
 
-        self.max_velocity = max_velocity
+
+        self.max_velocity = max_velocity 
         self.positions_over_time = [self.positions]
         self.velocities_over_time = [self.velocities]
 
-        # Optimization
-        self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance),
-                                 ("separation", self.separation_distance)], key=lambda x: x[1])
+        # Optimization        
+        self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance), ("separation", self.separation_distance)], key=lambda x: x[1])
 
     def step(self):
 
@@ -57,71 +56,65 @@ class Predator:
         cohesion = self.cohesion_rule(distances)
         separation = self.separation_rule(distances)
 
-        alignment_correction = (alignment + np.random.uniform(-1, 1, (
-        self.num_boids, 2)) * self.noise_strength) * self.alignment_strength
-        cohesion_correction = (cohesion + np.random.uniform(-1, 1, (
-        self.num_boids, 2)) * self.noise_strength) * self.cohesion_strength
-        separation_correction = (separation + np.random.uniform(-1, 1, (
-        self.num_boids, 2)) * self.noise_strength) * self.separation_strength
+        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_predators, 2))   * self.noise_strength) * self.alignment_strength
+        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_predators, 2))    * self.noise_strength) * self.cohesion_strength
+        separation_correction = (separation + np.random.uniform(-1,1, (self.num_predators, 2)) * self.noise_strength) * self.separation_strength
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction
         self.limit_velocity()
         self.positions = self.wrap(self.positions + self.velocities)
         self.positions_over_time.append(self.positions.copy())
         self.velocities_over_time.append(self.velocities.copy())
-
-    def step_pygame(self):
+    
+    def step_no_save(self):
         distances = self.get_distances()
 
         alignment = self.alignment_rule(distances)
         cohesion = self.cohesion_rule(distances)
         separation = self.separation_rule(distances)
 
-        alignment_correction = (alignment + np.random.uniform(-1, 1, (
-        self.num_boids, 2)) * self.noise_strength) * self.alignment_strength
-        cohesion_correction = (cohesion + np.random.uniform(-1, 1, (
-        self.num_boids, 2)) * self.noise_strength) * self.cohesion_strength
-        separation_correction = (separation + np.random.uniform(-1, 1, (
-        self.num_boids, 2)) * self.noise_strength) * self.separation_strength
+        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_predators, 2))   * self.noise_strength) * self.alignment_strength
+        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_predators, 2))    * self.noise_strength) * self.cohesion_strength
+        separation_correction = (separation + np.random.uniform(-1,1, (self.num_predators, 2)) * self.noise_strength) * self.separation_strength
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction
         self.limit_velocity()
         self.positions = self.wrap(self.positions + self.velocities)
 
-        return self.positions, self.velocities
+        return self.positions
 
     def get_distances(self):
         return np.sqrt(np.sum((self.positions[:, np.newaxis] - self.positions) ** 2, axis=2))
 
-    def get_close_boids(self, rule_distance, distances):
+    def get_close_predators(self, rule_distance, distances):
         return (distances < rule_distance) & (distances > 0)
 
     def alignment_rule(self, distances):
-        close_boids = self.get_close_boids(self.alignment_distance, distances)
+        close_predators = self.get_close_predators(self.alignment_distance, distances)
         alignment = np.zeros((len(self.positions), 2))
         for i in range(len(self.positions)):
-            neighbors = close_boids[i]
+            neighbors = close_predators[i]
             if any(neighbors):
                 alignment[i] = np.mean(self.velocities[neighbors], axis=0)
-        return alignment
+        return alignment 
 
     def cohesion_rule(self, distances):
-        close_boids = self.get_close_boids(self.cohesion_distance, distances)
+        close_predators = self.get_close_predators(self.cohesion_distance, distances)
         cohesion = np.zeros((len(self.positions), 2))
         for i in range(len(self.positions)):
-            neighbors = close_boids[i]
+            neighbors = close_predators[i]
             if any(neighbors):
                 cohesion[i] = np.mean(self.positions[neighbors], axis=0) - self.positions[i]
-        return cohesion
+        return cohesion 
 
     def separation_rule(self, distances):
-        close_boids = self.get_close_boids(self.separation_distance, distances)
+        close_predators = self.get_close_predators(self.separation_distance, distances)
         separation = np.zeros((len(self.positions), 2))
         for i in range(len(self.positions)):
-            neighbors = close_boids[i]
+            neighbors = close_predators[i]
             if any(neighbors):
                 separation[i] = np.sum(self.positions[neighbors] - self.positions[i], axis=0)
-        return - separation
+        return - separation 
 
     def limit_velocity(self):
         speed = np.sqrt(np.sum(self.velocities ** 2, axis=1))
