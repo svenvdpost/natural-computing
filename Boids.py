@@ -14,7 +14,7 @@ class Boids:
                  cohesion_strength, 
                  separation_strength, 
                  noise_strength,
-                 max_velocity
+                 max_velocity #Trait for predator and prey TODO: implement this as trait
                  ):
       
         self.num_boids = num_boids

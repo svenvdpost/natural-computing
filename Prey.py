@@ -29,6 +29,8 @@ class Prey(Boids.Boids):
                         noise_strength,
                         max_velocity)
         
+        #TODO implement traits
+
         vision_trait = [10]*num_boids
         speed_trait = [10]*num_boids
         self.traits['vision', 'speed'] = vision_trait, speed_trait
@@ -49,3 +51,5 @@ class Prey(Boids.Boids):
         self.positions = self.wrap(self.positions + self.velocities)
 
         return self.positions, self.velocities
+    
+
