@@ -65,7 +65,7 @@ class Simulation:
         max_velocity = 5    
 
         # Create Predator object
-        boids = Predator.Predator(num_pred, width, height, alignment_distance, cohesion_distance, separation_distance,
+        boids = Predator.Predators(num_pred, width, height, alignment_distance, cohesion_distance, separation_distance,
                                   vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
         
         return boids

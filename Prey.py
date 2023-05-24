@@ -16,7 +16,18 @@ class Prey(Boid.Boids):
                  separation_strength, 
                  noise_strength,
                  max_velocity):
-        super().__init__()
+        super().__init__(num_boids, 
+                        width, 
+                        height, 
+                        alignment_distance, 
+                        cohesion_distance, 
+                        separation_distance, 
+                        vision_distance,
+                        alignment_strength, 
+                        cohesion_strength, 
+                        separation_strength, 
+                        noise_strength,
+                        max_velocity)
       
     def step(self):
 
