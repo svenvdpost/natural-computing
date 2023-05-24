@@ -116,6 +116,13 @@ class Simulation:
 
             exit = False
 
+            prey_pos = self.prey.positions
+            prey_vel = self.prey.velocities
+
+            predators_pos = self.predators.positions
+            predators_vel = self.predators.velocities
+
+
             while not exit:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -134,8 +141,9 @@ class Simulation:
 
                 time.sleep(0.05)
 
-    # ---- GENETIC ALGORITHMS -----
+# ---- GENETIC ALGORITHMS -----
     
+
 
 
 if __name__ == "__main__":
