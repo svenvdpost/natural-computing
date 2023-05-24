@@ -108,8 +108,3 @@ class Prey(Boid.Boids):
         positions[:, 1] = np.where(positions[:, 1] > self.height, positions[:, 1] - self.height, positions[:, 1])
         positions[:, 1] = np.where(positions[:, 1] < 0, positions[:, 1] + self.height, positions[:, 1])
         return positions
-
-    def run_simulation(self, num_steps):
-        for i in range(num_steps):
-            self.step()
-        return self.positions_over_time, self.velocities_over_time
