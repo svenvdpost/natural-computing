@@ -25,7 +25,6 @@ class Boids:
 
 
         # TODO suggestion: instead of drawing different samples for the x and y strenght, make them the same. Maybe not necessary however.
-
         scale = 0.001
 
         self.alignment_distance = np.random.normal(alignment_distance, scale, num_boids) # alignment_distance 

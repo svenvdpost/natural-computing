@@ -4,7 +4,7 @@ import numpy as np
 
 import Prey
 import Predator
-import Boids
+import Genetic
 
 class Simulation:
 
@@ -15,6 +15,8 @@ class Simulation:
         self.prey = self.init_prey()        
         self.predators = self.init_predators()
         self.canvas = self.init_pygame()
+
+        self.genetic = Genetic.Genetic(self, 0.01)
 
     # ---- PREY ------
     def init_prey(self):
@@ -138,6 +140,9 @@ class Simulation:
                 simulation.draw_predators(positions, velocities)             
 
                 pygame.display.update()
+
+                self.genetic.next_generation([10], self.predators)
+
 
                 time.sleep(0.05)
 
