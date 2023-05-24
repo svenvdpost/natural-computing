@@ -1,53 +1,23 @@
 # Working version
 import numpy as np
+import Boid
 
-class Prey:
+class Prey(Boid.Boids):
     def __init__(self, 
-                 num_boids = 100, 
-                 width = 1000, 
-                 height = 1000, 
-                 alignment_distance = 50, 
-                 cohesion_distance = 100, 
-                 separation_distance = 25, 
-                 vision_distance = None,
-                 alignment_strength = 0.1, 
-                 cohesion_strength = 0.001, 
-                 separation_strength = 0.5, 
-                 noise_strength = 0.2,
-                 max_velocity = 5):
+                 num_boids, 
+                 width, 
+                 height, 
+                 alignment_distance, 
+                 cohesion_distance, 
+                 separation_distance, 
+                 vision_distance,
+                 alignment_strength, 
+                 cohesion_strength, 
+                 separation_strength, 
+                 noise_strength,
+                 max_velocity):
+        super().__init__()
       
-        self.num_boids = num_boids
-        #self.positions = np.random.uniform(low=[-width/2, -height/2], high=[width/2, height/2], size=(num_boids, 2))
-        self.positions = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))        
-        #self.velocities = np.random.uniform(low=[-width/2, -height/2], high=[width/2, height/2], size=(num_boids, 2))
-        self.velocities = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))
-        self.width = width
-        self.height = height
-
-        self.alignment_distance = alignment_distance 
-        self.cohesion_distance = cohesion_distance 
-        self.separation_distance = separation_distance 
-        self.alignment_strength = alignment_strength 
-        self.cohesion_strength = cohesion_strength 
-        self.separation_strength = separation_strength 
-        self.noise_strength = noise_strength
-        
-        if vision_distance != None:
-            self.alignment_distance = vision_distance
-            self.cohesion_distance = vision_distance
-            self.separation_distance = vision_distance
-            self.alignment_strength = vision_distance
-            self.cohesion_strength = vision_distance
-            self.separation_strength = vision_distance
-
-
-        self.max_velocity = max_velocity 
-        self.positions_over_time = [self.positions]
-        self.velocities_over_time = [self.velocities]
-
-        # Optimization        
-        self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance), ("separation", self.separation_distance)], key=lambda x: x[1])
-
     def step(self):
 
         distances = self.get_distances()
