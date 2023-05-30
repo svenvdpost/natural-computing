@@ -8,7 +8,12 @@ import Genetic
 
 class Simulation:
 
-    def __init__(self, width, height) -> None:
+   
+
+    def __init__(self, num_prey, num_predator, width, height) -> None:
+
+        self.num_prey = num_prey
+        self.num_predator = num_predator
         self.width = width
         self.height = height
 
@@ -21,12 +26,13 @@ class Simulation:
     # ---- PREY ------
     def init_prey(self):
         # Define model parameters
-        num_prey = 100
+        num_prey = self.num_prey
+        num_predator = self.num_predator
         alignment_distance = 50
         cohesion_distance = 100
         separation_distance = 25 #25
         dodging_distance = 100
-        vision_distance = None
+        #vision_distance = None
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
@@ -35,8 +41,8 @@ class Simulation:
         max_velocity = 5    
 
         # Create Boids object
-        boids = Prey.Prey(num_prey, width, height, alignment_distance, cohesion_distance, separation_distance, dodging_distance,
-                           vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, dodging_strength, max_velocity) # 
+        boids = Prey.Prey(num_prey, num_predator, width, height, alignment_distance, cohesion_distance, separation_distance, dodging_distance,
+                            alignment_strength, cohesion_strength, separation_strength, dodging_strength, noise_strength,  max_velocity) # vision_distance,
         
         return boids
 
@@ -57,20 +63,23 @@ class Simulation:
     # ---- PREDATORS ------
     def init_predators(self):
         # Define model parameters
-        num_pred = 10
+        num_predator = self.num_predator
+        num_prey = self.num_prey
         alignment_distance = 50
         cohesion_distance = 100
         separation_distance = 25
-        vision_distance = None
+        hunting_distance = 100
+        #vision_distance = None
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
+        hunting_strength = 0.1
         noise_strength = 0.1
         max_velocity = 5    
 
         # Create Predator object
-        boids = Predator.Predators(num_pred, width, height, alignment_distance, cohesion_distance, separation_distance,
-                                  vision_distance, alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity)
+        boids = Predator.Predators(num_predator, num_prey, width, height, alignment_distance, cohesion_distance, separation_distance, hunting_distance,
+                                   alignment_strength, cohesion_strength, separation_strength, hunting_strength, noise_strength, max_velocity) #vision_distance, dodging_strength,
         
         return boids
 
@@ -137,7 +146,7 @@ class Simulation:
                 prey_positions, prey_velocities = self.prey.step_pygame(predators_positions, predators_velocities)                            
                 simulation.draw_prey(prey_positions, prey_velocities)
 
-                predators_positions, predators_velocities = self.predators.step_pygame()   # prey_positions, prey_velocities                         
+                predators_positions, predators_velocities = self.predators.step_pygame(prey_positions, prey_velocities)   # prey_positions, prey_velocities                         
                 simulation.draw_predators(predators_positions, predators_velocities)             
 
                 pygame.display.update()
@@ -155,11 +164,13 @@ class Simulation:
 if __name__ == "__main__":
 
     # Define the simulation parameters
+    num_prey = 100
+    num_predator = 10
     width = 700
     height = 500
     num_steps = 100    
 
-    simulation = Simulation(width, height)
+    simulation = Simulation(num_prey, num_predator, width, height)
 
     #simulation.render_and_run(num_steps)   
     simulation.run_forever()
