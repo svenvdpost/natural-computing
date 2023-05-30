@@ -10,10 +10,12 @@ class Prey(Boids.Boids):
                  alignment_distance, 
                  cohesion_distance, 
                  separation_distance, 
+                 dodging_distance,
                  vision_distance,
                  alignment_strength, 
                  cohesion_strength, 
                  separation_strength, 
+                 dodging_strength,
                  noise_strength,
                  max_velocity):
         super().__init__(num_boids, 
@@ -22,10 +24,12 @@ class Prey(Boids.Boids):
                         alignment_distance, 
                         cohesion_distance, 
                         separation_distance, 
+                        dodging_distance,
                         vision_distance,
                         alignment_strength, 
                         cohesion_strength, 
                         separation_strength, 
+                        dodging_strength,
                         noise_strength,
                         max_velocity)
         
@@ -35,12 +39,15 @@ class Prey(Boids.Boids):
         speed_trait = [10]*num_boids
         self.traits['vision', 'speed'] = vision_trait, speed_trait
     
-    def step_pygame(self):
-        distances = self.get_distances()
+    def step_pygame(self, predator_positions, predator_velocities):
+        #print(predator_positions)
+        prey_distances = self.get_prey_distances()
 
-        alignment = self.alignment_rule(distances)
-        cohesion = self.cohesion_rule(distances)
-        separation = self.separation_rule(distances)
+        predator_distances = self.get_predator_distances(predator_positions)
+
+        alignment = self.alignment_rule(prey_distances)
+        cohesion = self.cohesion_rule(prey_distances)
+        separation = self.separation_rule(prey_distances)
 
         alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength) * self.alignment_strength
         cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength) * self.cohesion_strength
