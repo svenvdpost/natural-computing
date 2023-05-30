@@ -76,11 +76,21 @@ class Genetic:
 
     # create the next generation from the population
     def next_generation(self, population, boidclass : Boids.Boids):
-        velocities = []
-        positions  = []
-        traits = {}
 
         for parent1, parent2 in self.pair_random(population):
             children = self.make_children(parent1, parent2, boidclass)
+            for child in children:
+                self.next_positions.append(child[0])
+                self.next_velocity.append(child[1])
+                self.next_alignment_distance.append(child[2])
+                self.next_cohesion_distance.append(child[3])
+                self.next_separation_distance.append(child[4])
+                self.next_vision_distance.append(child[5])
+                self.next_alignment_strength.append(child[6])
+                self.next_cohesion_strength.append(child[7])
+                self.next_separation_strength.append(child[8])
+                self.next_noise_strength.append(child[9])
+                self.next_max_velocity.append(child[10])
+                self.next_traits = child[11]
 
-        return # boidclass.__new__()
+        next_generation_boidclass =  boidclass.__new__(len(children), boidclass.width, boidclass.height, np.array(self.next_alignment_distance))
