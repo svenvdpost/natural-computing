@@ -12,7 +12,6 @@ class Predators(Boids.Boids):
                  cohesion_distance, 
                  separation_distance,
                  hunting_distance, 
-                 #vision_distance,
                  alignment_strength, 
                  cohesion_strength, 
                  separation_strength,
@@ -25,12 +24,9 @@ class Predators(Boids.Boids):
                         alignment_distance, 
                         cohesion_distance, 
                         separation_distance,
-                        #dodging_distance, 
-                        #vision_distance,
                         alignment_strength, 
                         cohesion_strength, 
                         separation_strength,
-                        #dodging_strength, 
                         noise_strength,
                         max_velocity)
         
@@ -71,6 +67,5 @@ class Predators(Boids.Boids):
         for i in range(len(self.positions)):
             neighbors = close_boids[i]
             if any(neighbors):
-                #separation[i] = np.sum(self.positions[neighbors] - self.positions[i], axis=0)
                 hunting[i] = np.sum(positions_2[neighbors] - self.positions[i], axis=0)
         return hunting

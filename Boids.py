@@ -9,12 +9,9 @@ class Boids:
                  alignment_distance, 
                  cohesion_distance, 
                  separation_distance, 
-                 #dodging_distance,
-                 #vision_distance,
                  alignment_strength, 
                  cohesion_strength, 
                  separation_strength,
-                 #dodging_strength, 
                  noise_strength,
                  max_velocity #Trait for predator and prey TODO: implement this as trait
                  ):
@@ -32,22 +29,10 @@ class Boids:
         self.alignment_distance = np.random.normal(alignment_distance, scale, num_boids) # alignment_distance 
         self.cohesion_distance = np.random.normal(cohesion_distance, scale, num_boids) # cohesion_distance 
         self.separation_distance = np.random.normal(separation_distance, scale, num_boids) #  separation_distance 
-        # self.dodging_distance  = np.random.normal(dodging_distance, scale, 100) #  separation_distance 
         self.alignment_strength = np.random.normal(alignment_strength, scale, (num_boids, 2)) # alignment_strength 
         self.cohesion_strength = np.random.normal(cohesion_strength, scale, (num_boids, 2)) # cohesion_strength 
         self.separation_strength = np.random.normal(separation_strength, scale, (num_boids, 2)) # separation_strength 
-        #self.dodging_strength = np.random.normal(dodging_strength, scale, (num_boids, 2)) # separation_strength 
-        self.noise_strength = np.random.normal(noise_strength, scale, (num_boids, 2)) # noise_strength
-        '''
-        if vision_distance != None:
-            self.alignment_distance = vision_distance
-            self.cohesion_distance = vision_distance
-            self.separation_distance = vision_distance
-            self.alignment_strength = vision_distance
-            self.cohesion_strength = vision_distance
-            self.separation_strength = vision_distance
-        '''
-        
+        self.noise_strength = np.random.normal(noise_strength, scale, (num_boids, 2)) # noise_strength      
 
 
         self.max_velocity = np.random.normal(max_velocity, scale, num_boids) # max_velocity 
@@ -59,63 +44,11 @@ class Boids:
 
         self.traits = {}
 
-    # def step(self):
-
-    #     distances = self.get_distances()
-
-    #     alignment = self.alignment_rule(distances)
-    #     cohesion = self.cohesion_rule(distances)
-    #     separation = self.separation_rule(distances)
-
-    #     alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength) * self.alignment_strength
-    #     cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength) * self.cohesion_strength
-    #     separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.separation_strength
-
-    #     self.velocities += alignment_correction + cohesion_correction + separation_correction
-    #     self.limit_velocity()
-    #     self.positions = self.wrap(self.positions + self.velocities)
-    #     self.positions_over_time.append(self.positions.copy())
-    #     self.velocities_over_time.append(self.velocities.copy())
-    
-    # def step_pygame(self):
-    #     distances = self.get_distances()
-
-    #     alignment = self.alignment_rule(distances)
-    #     cohesion = self.cohesion_rule(distances)
-    #     separation = self.separation_rule(distances)
-
-    #     alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength) * self.alignment_strength
-    #     cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength) * self.cohesion_strength
-    #     separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.separation_strength
-
-    #     self.velocities += alignment_correction + cohesion_correction + separation_correction
-    #     self.limit_velocity()
-    #     self.positions = self.wrap(self.positions + self.velocities)
-
-    #     return self.positions, self.velocities
-
 
     def get_distances(self, positions_2):
         return np.sqrt(np.sum((self.positions[:, np.newaxis] - positions_2) ** 2, axis=2))
 
-    #def get_distances(self):
-    #    return np.sqrt(np.sum((self.positions[:, np.newaxis] - self.positions) ** 2, axis=2))
-
     def get_close_boids(self, rule_distance, distances):
-        # prey_distances = self.get_distances(self.positions)
-
-        # predator_distances = self.get_distances(predator_positions)
-        # dodging = self.dodging_rule(predator_distances)
-        # dodging_rule(self, (predator_)distances):
-
-        # close_boids = self.get_close_boids(self.dodging_distance, (predator_)distances)
-        #print(f'distance: {distances.shape}')
-        #print(f'rule_distance: {rule_distance.shape}')
-        #x = distances < np.transpose(rule_distance)
-        #print(f'distances < rule_distance: {x.shape}')
-        #print(x)
-        #x =distances > 0
-        #print(f'distances > 0: {x.shape}')
         return (distances < rule_distance) & (distances > 0)
 
     def alignment_rule(self, distances):
