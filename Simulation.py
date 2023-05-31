@@ -149,7 +149,7 @@ class Simulation:
 
                 pygame.display.update()
 
-                #self.genetic.next_generation([10], self.predators)
+                #self.genetic.next_generation(list(range(10)), self.predators)
 
 
                 time.sleep(0.05)
@@ -162,8 +162,8 @@ class Simulation:
 if __name__ == "__main__":
 
     # Define the simulation parameters
-    num_prey = 100
-    num_predator = 10
+    num_prey = 2
+    num_predator = 1
     width = 700
     height = 500
     num_steps = 100    
