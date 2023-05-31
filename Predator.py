@@ -59,11 +59,9 @@ class Predators(Boids.Boids):
         return self.positions, self.velocities
     
     def hunting_rule(self, distances, positions_2):
-        close_boids = self.get_close_boids(self.hunting_distance, distances)
-        print(close_boids)
         hunting = np.zeros((len(self.positions), 2))
         for i in range(len(self.positions)):
-            neighbors = close_boids[i]
+            neighbors = self.get_close_boids(self.hunting_distance[i], distances[i])
             if any(neighbors):
                 deltapos = (positions_2[neighbors] - self.positions[i])
                 minpos = np.argmin(np.sqrt(np.sum(np.square(positions_2[neighbors] - self.positions[i]), axis=1)))
