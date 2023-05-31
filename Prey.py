@@ -40,9 +40,6 @@ class Prey(Boids.Boids):
         self.dodging_distance  = np.random.normal(dodging_distance, scale, num_predator) #  separation_distance 
         self.dodging_strength = np.random.normal(dodging_strength, scale, (num_prey, 2)) # separation_strength 
 
-        vision_trait = [10]*num_prey
-        speed_trait = [10]*num_prey
-        self.traits['vision', 'speed'] = vision_trait, speed_trait
     
     def step_pygame(self, predator_positions, predator_velocities):
         #print(predator_positions)

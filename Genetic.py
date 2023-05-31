@@ -12,8 +12,8 @@ class Genetic:
         self.simulation = simulation
         self.mutation_rate = mutation_rate
         
-        self.next_positions = []
-        self.next_velocity = []
+        #self.next_positions = []
+        #self.next_velocity = []
         self.next_alignment_distance = []
         self.next_cohesion_distance = []
         self.next_separation_distance = []
@@ -33,32 +33,17 @@ class Genetic:
 
     # crossover the stats of the two parents
     def crossover(self, parent1, parent2, boidclass : Boids.Boids):
-        position = (boidclass.positions[parent1] + boidclass.positions[parent2]) / 2
-        velocity = (boidclass.velocities[parent1] + boidclass.velocities[parent2]) / 2
-        alignment_distance = (boidclass.alignment_distance[parent1] + boidclass.alignment_distance[parent2]) / 2
-        cohesion_distance = (boidclass.cohesion_distance[parent1] + boidclass.cohesion_distance[parent2]) / 2
-        separation_distance = (boidclass.separation_distance[parent1] + boidclass.separation_distance[parent2]) / 2
-        vision_distance = (boidclass.vision_distance[parent1] + boidclass.vision_distance[parent2]) / 2
-        alignment_strength = (boidclass.alignment_strength[parent1] + boidclass.alignment_strength[parent2]) / 2
-        cohesion_strength = (boidclass.cohesion_strength[parent1] + boidclass.cohesion_strength[parent2]) / 2
-        separation_strength = (boidclass.separation_strength[parent1] + boidclass.separation_strength[parent2]) / 2
-        noise_strength = (boidclass.noise_strength[parent1] + boidclass.noise_strength[parent2]) / 2
-        max_velocity =(boidclass.max_velocity[parent1] + boidclass.max_velocity[parent2]) / 2
-        traits = {}
+        #position = [(boidclass.positions[parent1][0] + boidclass.positions[parent2][0]) / 2,  (boidclass.positions[parent1][1] + boidclass.positions[parent2][1]) / 2]
+        #velocity = [ (boidclass.velocities[parent1][0] + boidclass.velocities[parent2][0]) / 2, (boidclass.velocities[parent1][1] + boidclass.velocities[parent2][1]) / 2]
 
-        for trait, traitlist in boidclass.traits.items():
-            traits[trait] = (traitlist[parent1] + traitlist[parent2]) / 2
-
-        return (position, velocity, alignment_distance, cohesion_distance, separation_distance, vision_distance,
-                alignment_strength, cohesion_strength, separation_strength, noise_strength, max_velocity, traits)
-            
+        return boidclass.crossover(parent1, parent2)           
 
     # create children from the two parents
     def make_children(self, parent1, parent2, boidclass : Boids.Boids):
         num_children = ceil(np.random.normal(2))
         children = []
 
-        for i in range(num_children):
+        for _ in range(num_children):
             child = self.crossover(parent1, parent2, boidclass)
             self.mutation(child)
             children.append(child)
@@ -70,27 +55,21 @@ class Genetic:
         shuffle(population)
         group1 = population[int(len(population) / 2):]
         group2 = population[:int(len(population) / 2)]
-
         return zip(group1, group2)
 
 
     # create the next generation from the population
     def next_generation(self, population, boidclass : Boids.Boids):
+        children = []
+        for _, (parent1, parent2) in enumerate(self.pair_random(population)):
+            children = children + self.make_children(parent1, parent2, boidclass)
 
-        for parent1, parent2 in self.pair_random(population):
-            children = self.make_children(parent1, parent2, boidclass)
-            for child in children:
-                self.next_positions.append(child[0])
-                self.next_velocity.append(child[1])
-                self.next_alignment_distance.append(child[2])
-                self.next_cohesion_distance.append(child[3])
-                self.next_separation_distance.append(child[4])
-                self.next_vision_distance.append(child[5])
-                self.next_alignment_strength.append(child[6])
-                self.next_cohesion_strength.append(child[7])
-                self.next_separation_strength.append(child[8])
-                self.next_noise_strength.append(child[9])
-                self.next_max_velocity.append(child[10])
-                self.next_traits = child[11]
+        reshaped_list = [list(x) for x in zip(*children)]
+        arguments = [len(children), 0, boidclass.width, boidclass.height] + reshaped_list
 
-        next_generation_boidclass =  boidclass.__new__(len(children), boidclass.width, boidclass.height, np.array(self.next_alignment_distance))
+        # for trait in range(len(children[1])-1):
+        #     test = children[trait][:]
+        #     print("trait")
+        #     print(test)
+
+        next_generation_boidclass =  boidclass.__class__(*arguments)

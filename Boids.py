@@ -32,17 +32,16 @@ class Boids:
         self.alignment_strength = np.random.normal(alignment_strength, scale, (num_boids, 2)) # alignment_strength 
         self.cohesion_strength = np.random.normal(cohesion_strength, scale, (num_boids, 2)) # cohesion_strength 
         self.separation_strength = np.random.normal(separation_strength, scale, (num_boids, 2)) # separation_strength 
+
         self.noise_strength = np.random.normal(noise_strength, scale, (num_boids, 2)) # noise_strength      
 
+        self.max_velocity = np.random.normal(max_velocity, scale, num_boids) # max_velocity
 
-        self.max_velocity = np.random.normal(max_velocity, scale, num_boids) # max_velocity 
         self.positions_over_time = [self.positions]
         self.velocities_over_time = [self.velocities]
 
         # Optimization        
         #self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance), ("separation", self.separation_distance)], key=lambda x: x[1])
-
-        self.traits = {}
 
 
     def get_distances(self, positions_2):
@@ -96,3 +95,17 @@ class Boids:
         for i in range(num_steps):
             self.step()
         return self.positions_over_time, self.velocities_over_time
+
+    def crossover(self, parent1, parent2):
+        alignment_distance = (self.alignment_distance[parent1] + self.alignment_distance[parent2]) / 2
+        cohesion_distance = (self.cohesion_distance[parent1] + self.cohesion_distance[parent2]) / 2
+        separation_distance = (self.separation_distance[parent1] + self.separation_distance[parent2]) / 2
+        alignment_strength = (self.alignment_strength[parent1] + self.alignment_strength[parent2]) / 2
+        cohesion_strength = (self.cohesion_strength[parent1] + self.cohesion_strength[parent2]) / 2
+        separation_strength = (self.separation_strength[parent1] + self.separation_strength[parent2]) / 2
+        noise_strength = (self.noise_strength[parent1] + self.noise_strength[parent2]) / 2
+        max_velocity = (self.max_velocity[parent1] + self.max_velocity[parent2]) / 2
+
+        return [alignment_distance, cohesion_distance, separation_distance,
+                alignment_strength, cohesion_strength, separation_strength, 
+                noise_strength, max_velocity]

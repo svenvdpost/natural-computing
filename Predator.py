@@ -5,13 +5,13 @@ import Boids
 class Predators(Boids.Boids):
     def __init__(self, 
                  num_predator, 
-                 num_prey,
+                 #num_prey,
                  width, 
                  height, 
                  alignment_distance, 
                  cohesion_distance, 
                  separation_distance,
-                 hunting_distance, 
+                 hunting_distance,
                  alignment_strength, 
                  cohesion_strength, 
                  separation_strength,
@@ -32,12 +32,9 @@ class Predators(Boids.Boids):
         
         #TODO implement traits
         scale = 0.001
-        self.hunting_distance  = np.random.normal(hunting_distance, scale, num_prey) #  separation_distance num_predator
+        self.hunting_distance  = np.random.normal(hunting_distance, scale, num_predator) #  separation_distance num_predator
         self.hunting_strength = np.random.normal(hunting_strength, scale, (num_predator, 2)) # separation_strength num_prey
 
-        vision_trait = [10]*num_predator
-        speed_trait = [10]*num_predator
-        self.traits['vision', 'speed'] = vision_trait, speed_trait
     
     #TODO: implent hunting component
     def step_pygame(self, prey_positions, prey_velocities):
@@ -62,10 +59,20 @@ class Predators(Boids.Boids):
         return self.positions, self.velocities
     
     def hunting_rule(self, distances, positions_2):
-        close_boids = self.get_close_boids(self.hunting_distance, distances)
         hunting = np.zeros((len(self.positions), 2))
         for i in range(len(self.positions)):
-            neighbors = close_boids[i]
+            neighbors = self.get_close_boids(self.hunting_distance[i], distances[i])
             if any(neighbors):
-                hunting[i] = np.sum(positions_2[neighbors] - self.positions[i], axis=0)
+                deltapos = (positions_2[neighbors] - self.positions[i])
+                minpos = np.argmin(np.sqrt(np.sum(np.square(positions_2[neighbors] - self.positions[i]), axis=1)))
+                hunting[i] = deltapos[minpos]
         return hunting
+    
+
+    def crossover(self, parent1, parent2):
+        genes = super().crossover(parent1, parent2)
+
+        hunting_distance = (self.hunting_distance[parent1] + self.hunting_distance[parent2]) / 2
+        hunting_strength = (self.hunting_strength[parent1] + self.hunting_strength[parent2]) / 2
+
+        return genes[:3] + [hunting_distance] + genes[3:6] + [hunting_strength] + genes[6:]
