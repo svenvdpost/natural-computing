@@ -5,7 +5,7 @@ import Boids
 class Predators(Boids.Boids):
     def __init__(self, 
                  num_predator, 
-                 num_prey,
+                 #num_prey,
                  width, 
                  height, 
                  alignment_distance, 
@@ -32,7 +32,7 @@ class Predators(Boids.Boids):
         
         #TODO implement traits
         scale = 0.001
-        self.hunting_distance  = np.random.normal(hunting_distance, scale, num_prey) #  separation_distance num_predator
+        self.hunting_distance  = np.random.normal(hunting_distance, scale, num_predator) #  separation_distance num_predator
         self.hunting_strength = np.random.normal(hunting_strength, scale, (num_predator, 2)) # separation_strength num_prey
 
     
@@ -60,11 +60,14 @@ class Predators(Boids.Boids):
     
     def hunting_rule(self, distances, positions_2):
         close_boids = self.get_close_boids(self.hunting_distance, distances)
+        print(close_boids)
         hunting = np.zeros((len(self.positions), 2))
         for i in range(len(self.positions)):
             neighbors = close_boids[i]
             if any(neighbors):
-                hunting[i] = np.sum(positions_2[neighbors] - self.positions[i], axis=0)
+                deltapos = (positions_2[neighbors] - self.positions[i])
+                minpos = np.argmin(np.sqrt(np.sum(np.square(positions_2[neighbors] - self.positions[i]), axis=1)))
+                hunting[i] = deltapos[minpos]
         return hunting
     
 

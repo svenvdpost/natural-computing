@@ -67,7 +67,7 @@ class Simulation:
         alignment_distance = 50
         cohesion_distance = 100
         separation_distance = 25
-        hunting_distance = 100
+        hunting_distance = 100000
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
@@ -76,7 +76,7 @@ class Simulation:
         max_velocity = 5    
 
         # Create Predator object
-        boids = Predator.Predators(num_predator, num_prey, width, height, alignment_distance, cohesion_distance, separation_distance, hunting_distance,
+        boids = Predator.Predators(num_predator, width, height, alignment_distance, cohesion_distance, separation_distance, hunting_distance,
                                    alignment_strength, cohesion_strength, separation_strength, hunting_strength, noise_strength, max_velocity) #vision_distance, dodging_strength,
         
         return boids
