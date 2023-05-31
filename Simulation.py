@@ -32,7 +32,6 @@ class Simulation:
         cohesion_distance = 100
         separation_distance = 25 #25
         dodging_distance = 100
-        #vision_distance = None
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
@@ -69,7 +68,6 @@ class Simulation:
         cohesion_distance = 100
         separation_distance = 25
         hunting_distance = 100
-        #vision_distance = None
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
@@ -151,7 +149,7 @@ class Simulation:
 
                 pygame.display.update()
 
-                self.genetic.next_generation([10], self.predators)
+                #self.genetic.next_generation([10], self.predators)
 
 
                 time.sleep(0.05)
