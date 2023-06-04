@@ -77,4 +77,7 @@ class Prey(Boids.Boids):
                 dodging[i] = np.sum(positions_2[neighbors] - self.positions[i], axis=0)
         return - dodging
     
-
+    def crossover(self, parent1, parent2):
+        genes = super().crossover(parent1, parent2)
+        
+        return genes
