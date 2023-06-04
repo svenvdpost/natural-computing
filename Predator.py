@@ -5,7 +5,6 @@ import Boids
 class Predators(Boids.Boids):
     def __init__(self, 
                  num_predator, 
-                 #num_prey,
                  scale,
                  width, 
                  height, 
@@ -39,6 +38,7 @@ class Predators(Boids.Boids):
         self.hunting_strength = np.random.normal(hunting_strength, scale, (num_predator, 2)) # separation_strength num_prey
         self.num_predator = num_predator
         self.hunting_strength = np.random.normal(hunting_strength, self.scale, (num_predator, 2)) # separation_strength num_prey
+        self.elimination_distance = np.random.normal(elimination_distance, self.scale, num_prey) #  separation_distance num_predator
 
     
     #TODO: implent hunting component
@@ -86,3 +86,14 @@ class Predators(Boids.Boids):
         hunting_strength = (self.hunting_strength[parent1] + self.hunting_strength[parent2]) / 2
 
         return genes[:3] + [hunting_distance] + genes[3:6] + [hunting_strength] + genes[6:]
+
+    def elimination(self, distances):
+        caught_prey = self.get_close_boids(self.elimination_distance, distances)
+        caught_prey_idx = []
+        predator_kill_counts = np.zeros(self.num_predator)
+        for i in range(len(self.positions)):
+            neighbors = caught_prey[i]
+            predator_kill_counts[i] = np.sum(neighbors)
+            if any(neighbors):
+                caught_prey_idx.extend(neighbors.nonzero()[0])
+        return list( dict.fromkeys(caught_prey_idx)), predator_kill_counts 
