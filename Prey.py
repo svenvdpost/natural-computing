@@ -6,13 +6,13 @@ class Prey(Boids.Boids):
     def __init__(self, 
                  num_prey,
                  num_predator, 
+                 scale,
                  width, 
                  height, 
                  alignment_distance, 
                  cohesion_distance, 
                  separation_distance, 
                  dodging_distance,
-                 #vision_distance,
                  alignment_strength, 
                  cohesion_strength, 
                  separation_strength, 
@@ -20,39 +20,31 @@ class Prey(Boids.Boids):
                  noise_strength,
                  max_velocity):
         super().__init__(num_prey,
-                        #num_predator, 
+                        scale,
                         width, 
                         height, 
                         alignment_distance, 
                         cohesion_distance, 
                         separation_distance, 
-                        #dodging_distance,
-                        #vision_distance,
                         alignment_strength, 
                         cohesion_strength, 
                         separation_strength, 
-                        #dodging_strength,
                         noise_strength,
                         max_velocity)
         
         #TODO implement traits
-        scale = 0.001
-        self.dodging_distance  = np.random.normal(dodging_distance, scale, num_predator) #  separation_distance 
-        self.dodging_strength = np.random.normal(dodging_strength, scale, (num_prey, 2)) # separation_strength 
+        self.scale = scale
+        self.dodging_distance  = np.random.normal(dodging_distance, self.scale, num_predator) #  separation_distance 
+        self.dodging_strength = np.random.normal(dodging_strength, self.scale, (num_prey, 2)) # separation_strength 
 
         vision_trait = [10]*num_prey
         speed_trait = [10]*num_prey
         self.traits['vision', 'speed'] = vision_trait, speed_trait
     
     def step_pygame(self, predator_positions, predator_velocities):
-        #print(predator_positions)
-        prey_distances = self.get_distances(self.positions)
-        #print(f'prey_distances {prey_distances.shape}')
-        #print(prey_distances)
 
+        prey_distances = self.get_distances(self.positions)
         predator_distances = self.get_distances(predator_positions)
-        #print(f'predator_distances {predator_distances.shape}')
-        #print(predator_distances)
 
         alignment = self.alignment_rule(prey_distances)
         cohesion = self.cohesion_rule(prey_distances)
@@ -76,7 +68,6 @@ class Prey(Boids.Boids):
         for i in range(len(self.positions)):
             neighbors = close_boids[i]
             if any(neighbors):
-                #separation[i] = np.sum(self.positions[neighbors] - self.positions[i], axis=0)
                 dodging[i] = np.sum(positions_2[neighbors] - self.positions[i], axis=0)
         return - dodging
     
