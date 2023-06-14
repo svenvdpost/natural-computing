@@ -28,6 +28,7 @@ class Simulation:
         self.prey = self.init_prey()        
         self.predators = self.init_predators()
         self.canvas = self.init_pygame()
+        self.font = pygame.font.SysFont('arial', 15)
 
         self.genetic = Genetic.Genetic(self, 0.01)
 
@@ -78,7 +79,7 @@ class Simulation:
         cohesion_distance = 100
         separation_distance = 25
         hunting_distance = 100
-        elimination_distance = 10 #10?
+        elimination_distance = 10
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
@@ -103,6 +104,8 @@ class Simulation:
         pygame.init()
         canvas = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Boid simulation")
+
+        pygame.font.init()     
 
         return canvas
 
@@ -172,7 +175,15 @@ class Simulation:
                 
                 # Draw prey and predators
                 simulation.draw_prey(prey_positions, prey_velocities)                     
-                simulation.draw_predators(predators_positions, predators_velocities)             
+                simulation.draw_predators(predators_positions, predators_velocities)
+
+                # Display some stats
+                text_surface = self.font.render(f' num_prey: {self.num_prey - len(elimination_order)}', False, (0, 0, 0)) 
+                self.canvas.blit(text_surface, (0,0))
+                text_surface = self.font.render(f' kill_counts: {predator_kill_counts}', False, (0, 0, 0)) 
+                self.canvas.blit(text_surface, (0,20))
+                text_surface = self.font.render(f' time_step: {time_step}', False, (0, 0, 0)) 
+                self.canvas.blit(text_surface, (0,40))
                 pygame.display.update()
 
 
@@ -223,7 +234,7 @@ class Simulation:
                     exit = True
 
 
-                #self.genetic.next_generation([10], self.predators)
+                self.genetic.next_generation([0,1,2,3], self.predators)
 
                 time_step += 1
                  
@@ -239,7 +250,7 @@ if __name__ == "__main__":
     # Define the simulation parameters
     num_prey = 50
     num_predator = 4
-    scale = 0.001
+    scale = 0.1
     width = 700
     height = 500
     #num_steps = 100  

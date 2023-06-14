@@ -18,7 +18,7 @@ class Predators(Boids.Boids):
                  separation_strength,
                  hunting_strength, 
                  noise_strength,
-                 max_velocity):
+                 max_velocity,):
         super().__init__(num_predator, 
                         scale,
                         width, 
@@ -31,8 +31,7 @@ class Predators(Boids.Boids):
                         separation_strength,
                         noise_strength,
                         max_velocity)
-        
-        #TODO implement traits
+    
         scale = 0.001
         self.hunting_distance  = np.random.normal(hunting_distance, scale, num_predator) #  separation_distance num_predator
         self.hunting_strength = np.random.normal(hunting_strength, scale, (num_predator, 2)) # separation_strength num_prey
@@ -78,13 +77,6 @@ class Predators(Boids.Boids):
                 hunting[i] = deltapos[minpos]
         return hunting    
 
-    def crossover(self, parent1, parent2):
-        genes = super().crossover(parent1, parent2)
-
-        hunting_distance = (self.hunting_distance[parent1] + self.hunting_distance[parent2]) / 2
-        hunting_strength = (self.hunting_strength[parent1] + self.hunting_strength[parent2]) / 2
-
-        return genes[:3] + [hunting_distance] + genes[3:6] + [hunting_strength] + genes[6:]
 
     def elimination(self, distances):
         predator_kill_counts = np.zeros(self.num_predator)
@@ -95,3 +87,16 @@ class Predators(Boids.Boids):
             if any(caught_prey):
                 caught_prey_idx.extend(caught_prey.nonzero()[0])
         return list( dict.fromkeys(caught_prey_idx)), predator_kill_counts 
+    
+
+    def crossover(self, parents):
+        genes = super().crossover(parents)
+
+        hunting_distance = np.mean(np.take(self.hunting_distance, parents))
+        hunting_strength = np.mean(np.take(self.hunting_strength, parents))
+        elimination_distance = np.mean(np.take(self.elimination_distance, parents))
+
+        return genes[:3] + [hunting_distance, elimination_distance] + genes[3:6] + [hunting_strength] + genes[6:]
+    
+    def set_traits(self, trait_matrix):
+        pass
