@@ -3,7 +3,8 @@ import numpy as np
 
 class Boids:
     def __init__(self, 
-                 num_boids, 
+                 num_boids,
+                 scale, 
                  width, 
                  height, 
                  alignment_distance, 
@@ -19,21 +20,22 @@ class Boids:
         self.num_boids = num_boids
         self.positions = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))        
         self.velocities = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))
+        self.scale = scale
         self.width = width
         self.height = height
+        
 
 
         # TODO suggestion: instead of drawing different samples for the x and y strenght, make them the same. Maybe not necessary however.
-        scale = 0.001
+        #scale = 0.001
 
-        self.alignment_distance = np.random.normal(alignment_distance, scale, num_boids) # alignment_distance 
-        self.cohesion_distance = np.random.normal(cohesion_distance, scale, num_boids) # cohesion_distance 
-        self.separation_distance = np.random.normal(separation_distance, scale, num_boids) #  separation_distance 
-        self.alignment_strength = np.random.normal(alignment_strength, scale, (num_boids, 2)) # alignment_strength 
-        self.cohesion_strength = np.random.normal(cohesion_strength, scale, (num_boids, 2)) # cohesion_strength 
-        self.separation_strength = np.random.normal(separation_strength, scale, (num_boids, 2)) # separation_strength 
-
-        self.noise_strength = np.random.normal(noise_strength, scale, (num_boids, 2)) # noise_strength      
+        self.alignment_distance = np.random.normal(alignment_distance, self.scale, num_boids) # alignment_distance 
+        self.cohesion_distance = np.random.normal(cohesion_distance, self.scale, num_boids) # cohesion_distance 
+        self.separation_distance = np.random.normal(separation_distance, self.scale, num_boids) #  separation_distance 
+        self.alignment_strength = np.random.normal(alignment_strength, self.scale, (num_boids, 2)) # alignment_strength 
+        self.cohesion_strength = np.random.normal(cohesion_strength, self.scale, (num_boids, 2)) # cohesion_strength 
+        self.separation_strength = np.random.normal(separation_strength, self.scale, (num_boids, 2)) # separation_strength 
+        self.noise_strength = np.random.normal(noise_strength, self.scale, (num_boids, 2)) # noise_strength      
 
         self.max_velocity = np.random.normal(max_velocity, scale, num_boids) # max_velocity
 
