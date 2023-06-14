@@ -38,7 +38,7 @@ class Predators(Boids.Boids):
         self.hunting_strength = np.random.normal(hunting_strength, scale, (num_predator, 2)) # separation_strength num_prey
         self.num_predator = num_predator
         self.hunting_strength = np.random.normal(hunting_strength, self.scale, (num_predator, 2)) # separation_strength num_prey
-        self.elimination_distance = np.random.normal(elimination_distance, self.scale, num_prey) #  separation_distance num_predator
+        self.elimination_distance = np.random.normal(elimination_distance, self.scale, num_predator) #  separation_distance num_predator
 
     
     #TODO: implent hunting component
@@ -76,8 +76,7 @@ class Predators(Boids.Boids):
                 deltapos = (positions_2[neighbors] - self.positions[i])
                 minpos = np.argmin(np.sqrt(np.sum(np.square(positions_2[neighbors] - self.positions[i]), axis=1)))
                 hunting[i] = deltapos[minpos]
-        return hunting
-    
+        return hunting    
 
     def crossover(self, parent1, parent2):
         genes = super().crossover(parent1, parent2)
@@ -88,12 +87,11 @@ class Predators(Boids.Boids):
         return genes[:3] + [hunting_distance] + genes[3:6] + [hunting_strength] + genes[6:]
 
     def elimination(self, distances):
-        caught_prey = self.get_close_boids(self.elimination_distance, distances)
-        caught_prey_idx = []
         predator_kill_counts = np.zeros(self.num_predator)
+        caught_prey_idx = []
         for i in range(len(self.positions)):
-            neighbors = caught_prey[i]
-            predator_kill_counts[i] = np.sum(neighbors)
-            if any(neighbors):
-                caught_prey_idx.extend(neighbors.nonzero()[0])
+            caught_prey = self.get_close_boids(self.elimination_distance[i], distances[i])
+            predator_kill_counts[i] = np.sum(caught_prey)
+            if any(caught_prey):
+                caught_prey_idx.extend(caught_prey.nonzero()[0])
         return list( dict.fromkeys(caught_prey_idx)), predator_kill_counts 
