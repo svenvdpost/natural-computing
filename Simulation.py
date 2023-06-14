@@ -98,6 +98,37 @@ class Simulation:
             pygame.draw.circle(self.canvas, (0,0,255), pos, 5)
             pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 5)
 
+    # Select prey and predator boids for crossover
+    def crossover_selection(self, elimination_order, predator_kill_counts, prey_survival_times, time_step):
+        
+        # Predator crossover selection (select the predators that eliminated most boids)
+        predator_selection_weights = predator_kill_counts**self.kill_counts_scaling_factor
+        predator_selection_probabilities = predator_selection_weights / np.sum( predator_selection_weights)
+        predator_crossover_idx = list(np.random.choice(range(self.num_predator),size=self.num_predator_crossover,replace=False, p=predator_selection_probabilities))
+        
+        
+        # Prey crossover selection
+        prey_selection_weights = list(np.array(prey_survival_times)**self.survival_time_scaling_factor)
+        prey_selection_probabilities =  prey_selection_weights / np.sum( prey_selection_weights)
+
+        if len(elimination_order) >= self.num_prey:
+            prey_crossover_idx = list(np.random.choice(elimination_order,size=self.num_prey_crossover,replace=False, p=prey_selection_probabilities))
+
+        elif time_step >= self.max_time_steps:
+            survivors = list(set(range(num_prey)) - set(elimination_order))
+            num_select_survivors = np.min([self.num_prey_crossover, len(survivors)])
+
+            # Less survivors than desired number of prey boids for cross over?
+            num_remaining = self.num_prey_crossover - num_select_survivors
+            prey_crossover_idx = list(np.random.choice(survivors,size=num_select_survivors,replace=False))
+
+            # Select the remaining boids for crossover depending on their survival time
+            if num_remaining:
+                prey_crossover_idx.extend(np.random.choice(elimination_order,size=num_remaining,replace=False, p=prey_selection_probabilities))
+
+        return prey_crossover_idx, predator_crossover_idx
+    
+
     # ---- CANVAS -----
     def init_pygame(self):
         pygame.init()
@@ -162,10 +193,13 @@ class Simulation:
 
                 predators_positions, predators_velocities, eliminated_prey, predator_kills = self.predators.step_pygame(prey_positions, prey_velocities)   # prey_positions, prey_velocities   
 
-
-                # 'remove/deactivate eliminated prey
+                # remove/deactivate eliminated prey
                 elimination_order.extend(eliminated_prey)
                 prey_positions[eliminated_prey] = None
+
+                # Stor how long the eliminated prey boids survived within the simulation
+                for _ in range(len(eliminated_prey)):
+                    prey_survival_times.append(time_step)
 
                 # Update kill count
                 predator_kill_counts += predator_kills
@@ -175,50 +209,12 @@ class Simulation:
                 simulation.draw_predators(predators_positions, predators_velocities)             
                 pygame.display.update()
 
-
-                for _ in range(len(eliminated_prey)):
-                    prey_survival_times.append(time_step)
-
-
                 # Stop simulation if all prey was hunted down or max steps reached
                 if len(elimination_order) >= self.num_prey or time_step >= self.max_time_steps:
-                    # Predator crossover selection
-                    predator_selection_weights = predator_kill_counts**self.kill_counts_scaling_factor
-                    predator_selection_probabilities = predator_selection_weights / np.sum( predator_selection_weights)
-                    predator_crossover_idx = list(np.random.choice(range(self.num_predator),size=self.num_predator_crossover,replace=False, p=predator_selection_probabilities))
-                    print('predator_crossover_idx')
-                    print(predator_crossover_idx)
+                    prey_crossover_idx, predator_crossover_idx = self.crossover_selection(elimination_order, predator_kill_counts, prey_survival_times, time_step)
                     
-                    # Prey crossover selection
-                    prey_selection_weights = list(np.array(prey_survival_times)**self.survival_time_scaling_factor)
-                    prey_selection_probabilities =  prey_selection_weights / np.sum( prey_selection_weights)
-
-
-                    if len(elimination_order) >= self.num_prey:
-                        prey_crossover_idx = list(np.random.choice(elimination_order,size=self.num_prey_crossover,replace=False, p=prey_selection_probabilities))
-                        print('prey_crossover_idx')
-                        print(prey_crossover_idx)
-                        
-
-                    elif time_step >= self.max_time_steps:
-                        survivors = list(set(range(num_prey)) - set(elimination_order))
-                        num_select_survivors = np.min([self.num_prey_crossover, len(survivors)])
-
-                        # Less survivors than desired number of prey boids for cross over?
-                        num_remaining = self.num_prey_crossover - num_select_survivors
-                        prey_crossover_idx = list(np.random.choice(survivors,size=num_select_survivors,replace=False))
-                        
-                        print('survivors')
-                        print(survivors)
-                        print('prey_crossover_idx')
-                        print(prey_crossover_idx)
-
-                        # Select the remaining boids for crossover depending on their survival time
-                        if num_remaining:
-                            prey_crossover_idx.extend(np.random.choice(elimination_order,size=num_remaining,replace=False, p=prey_selection_probabilities))
-
-                        print('updated prey_crossover_idx')
-                        print(prey_crossover_idx)
+                    print(f'predator_crossover_idx: {predator_crossover_idx}')
+                    print(f'prey_crossover_idx: {prey_crossover_idx}')
 
                     exit = True
 
@@ -228,6 +224,7 @@ class Simulation:
                 time_step += 1
                  
                 time.sleep(0.01)
+
 
 # ---- GENETIC ALGORITHMS -----
     
@@ -245,7 +242,7 @@ if __name__ == "__main__":
     #num_steps = 100  
     num_prey_crossover = 10
     num_predator_crossover = 4
-    max_time_steps = 10000
+    max_time_steps = 1000
     survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
 
