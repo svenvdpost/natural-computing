@@ -32,19 +32,16 @@ class Genetic:
             pass
 
     # crossover the stats of the two parents
-    def crossover(self, parent1, parent2, boidclass : Boids.Boids):
-        #position = [(boidclass.positions[parent1][0] + boidclass.positions[parent2][0]) / 2,  (boidclass.positions[parent1][1] + boidclass.positions[parent2][1]) / 2]
-        #velocity = [ (boidclass.velocities[parent1][0] + boidclass.velocities[parent2][0]) / 2, (boidclass.velocities[parent1][1] + boidclass.velocities[parent2][1]) / 2]
-
-        return boidclass.crossover(parent1, parent2)           
-
+    def crossover(self, parents, boidclass : Boids.Boids):
+        return boidclass.crossover(parents)
+    
     # create children from the two parents
-    def make_children(self, parent1, parent2, boidclass : Boids.Boids):
+    def make_children(self, parents, boidclass : Boids.Boids):
         num_children = ceil(np.random.normal(2))
         children = []
 
         for _ in range(num_children):
-            child = self.crossover(parent1, parent2, boidclass)
+            child = self.crossover(parents, boidclass)
             self.mutation(child)
             children.append(child)
         
@@ -62,14 +59,15 @@ class Genetic:
     def next_generation(self, population, boidclass : Boids.Boids):
         children = []
         for _, (parent1, parent2) in enumerate(self.pair_random(population)):
-            children = children + self.make_children(parent1, parent2, boidclass)
+            children = children + self.make_children([parent1, parent2], boidclass)
 
         reshaped_list = [list(x) for x in zip(*children)]
         arguments = [len(children), 0, boidclass.width, boidclass.height] + reshaped_list
+
 
         # for trait in range(len(children[1])-1):
         #     test = children[trait][:]
         #     print("trait")
         #     print(test)
 
-        next_generation_boidclass =  boidclass.__class__(*arguments)
+        next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later

@@ -18,7 +18,7 @@ class Predators(Boids.Boids):
                  separation_strength,
                  hunting_strength, 
                  noise_strength,
-                 max_velocity,):
+                 max_velocity):
         super().__init__(num_predator, 
                         scale,
                         width, 

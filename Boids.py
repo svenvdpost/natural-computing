@@ -98,16 +98,18 @@ class Boids:
             self.step()
         return self.positions_over_time, self.velocities_over_time
 
-    def crossover(self, parent1, parent2):
-        alignment_distance = (self.alignment_distance[parent1] + self.alignment_distance[parent2]) / 2
-        cohesion_distance = (self.cohesion_distance[parent1] + self.cohesion_distance[parent2]) / 2
-        separation_distance = (self.separation_distance[parent1] + self.separation_distance[parent2]) / 2
-        alignment_strength = (self.alignment_strength[parent1] + self.alignment_strength[parent2]) / 2
-        cohesion_strength = (self.cohesion_strength[parent1] + self.cohesion_strength[parent2]) / 2
-        separation_strength = (self.separation_strength[parent1] + self.separation_strength[parent2]) / 2
-        noise_strength = (self.noise_strength[parent1] + self.noise_strength[parent2]) / 2
-        max_velocity = (self.max_velocity[parent1] + self.max_velocity[parent2]) / 2
+    def crossover(self, parents):
+        alignment_distance = np.take(self.alignment_distance, parents)
+        cohesion_distance = np.take(self.cohesion_distance, parents)
+        separation_distance = np.take(self.separation_distance, parents)
+        alignment_strength = np.take(self.alignment_strength, parents)
+        cohesion_strength = np.take(self.cohesion_strength, parents)
+        separation_strength = np.take(self.separation_strength, parents)
+        noise_strength = np.take(self.noise_strength, parents)
+        max_velocity = np.take(self.max_velocity, parents)
 
-        return [alignment_distance, cohesion_distance, separation_distance,
+        trait_matrix = np.array([alignment_distance, cohesion_distance, separation_distance,
                 alignment_strength, cohesion_strength, separation_strength, 
-                noise_strength, max_velocity]
+                noise_strength, max_velocity])
+
+        return list(np.mean(trait_matrix, 1))
