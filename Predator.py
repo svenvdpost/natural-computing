@@ -41,7 +41,6 @@ class Predators(Boids.Boids):
         self.elimination_distance = np.random.normal(elimination_distance, self.scale, num_predator) #  separation_distance num_predator
 
     
-    #TODO: implent hunting component
     def step_pygame(self, prey_positions, prey_velocities):
         predator_distances = self.get_distances(self.positions)
         
@@ -84,7 +83,10 @@ class Predators(Boids.Boids):
         hunting_distance = (self.hunting_distance[parent1] + self.hunting_distance[parent2]) / 2
         hunting_strength = (self.hunting_strength[parent1] + self.hunting_strength[parent2]) / 2
 
+
+
         return genes[:3] + [hunting_distance] + genes[3:6] + [hunting_strength] + genes[6:]
+    
 
     def elimination(self, distances):
         predator_kill_counts = np.zeros(self.num_predator)
