@@ -1,6 +1,7 @@
 import pygame
 import time
 import numpy as np
+import random
 
 import Prey
 import Predator
@@ -8,14 +9,21 @@ import Genetic
 
 class Simulation:
 
-   
 
-    def __init__(self, num_prey, num_predator, width, height) -> None:
+
+    def __init__(self, num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, survival_time_scaling_factor, kill_counts_scaling_factor) -> None:
 
         self.num_prey = num_prey
         self.num_predator = num_predator
+        self.scale = scale
         self.width = width
         self.height = height
+
+        self.num_prey_crossover = num_prey_crossover
+        self.num_predator_crossover = num_predator_crossover
+        self.max_time_steps = max_time_steps
+        self.survival_time_scaling_factor = survival_time_scaling_factor
+        self.kill_counts_scaling_factor = kill_counts_scaling_factor
 
         self.prey = self.init_prey()        
         self.predators = self.init_predators()
@@ -28,6 +36,7 @@ class Simulation:
         # Define model parameters
         num_prey = self.num_prey
         num_predator = self.num_predator
+        scale = self.scale
         alignment_distance = 50
         cohesion_distance = 100
         separation_distance = 25 #25
@@ -40,7 +49,7 @@ class Simulation:
         max_velocity = 5    
 
         # Create Boids object
-        boids = Prey.Prey(num_prey, num_predator, width, height, alignment_distance, cohesion_distance, separation_distance, dodging_distance,
+        boids = Prey.Prey(num_prey, num_predator, scale, width, height, alignment_distance, cohesion_distance, separation_distance, dodging_distance,
                             alignment_strength, cohesion_strength, separation_strength, dodging_strength, noise_strength,  max_velocity) # vision_distance,
         
         return boids
@@ -64,19 +73,21 @@ class Simulation:
         # Define model parameters
         num_predator = self.num_predator
         num_prey = self.num_prey
+        scale = self.scale
         alignment_distance = 50
         cohesion_distance = 100
         separation_distance = 25
-        hunting_distance = 100000
+        hunting_distance = 100
+        elimination_distance = 10 #10?
         alignment_strength = 0.1
         cohesion_strength = 0.001
         separation_strength = 0.05
         hunting_strength = 0.1
         noise_strength = 0.1
-        max_velocity = 5    
+        max_velocity = 6    
 
         # Create Predator object
-        boids = Predator.Predators(num_predator, width, height, alignment_distance, cohesion_distance, separation_distance, hunting_distance,
+        boids = Predator.Predators(num_predator, scale, width, height, alignment_distance, cohesion_distance, separation_distance, hunting_distance, elimination_distance,
                                    alignment_strength, cohesion_strength, separation_strength, hunting_strength, noise_strength, max_velocity) #vision_distance, dodging_strength,
         
         return boids
@@ -133,6 +144,11 @@ class Simulation:
             predators_positions = self.predators.positions
             predators_velocities = self.predators.velocities
 
+            elimination_order = []
+            prey_survival_times = []
+            time_step = 1
+            predator_kill_counts = np.zeros(self.num_predator)
+ 
             while not exit:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -142,17 +158,76 @@ class Simulation:
                 self.canvas.fill((255,255,255))
 
                 prey_positions, prey_velocities = self.prey.step_pygame(predators_positions, predators_velocities)                            
-                simulation.draw_prey(prey_positions, prey_velocities)
+                
 
-                predators_positions, predators_velocities = self.predators.step_pygame(prey_positions, prey_velocities)   # prey_positions, prey_velocities                         
+                predators_positions, predators_velocities, eliminated_prey, predator_kills = self.predators.step_pygame(prey_positions, prey_velocities)   # prey_positions, prey_velocities   
+
+
+                # 'remove/deactivate eliminated prey
+                elimination_order.extend(eliminated_prey)
+                prey_positions[eliminated_prey] = None
+
+                # Update kill count
+                predator_kill_counts += predator_kills
+                
+                # Draw prey and predators
+                simulation.draw_prey(prey_positions, prey_velocities)                     
                 simulation.draw_predators(predators_positions, predators_velocities)             
-
                 pygame.display.update()
 
-                #self.genetic.next_generation(list(range(10)), self.predators)
+
+                for _ in range(len(eliminated_prey)):
+                    prey_survival_times.append(time_step)
 
 
-                time.sleep(0.05)
+                # Stop simulation if all prey was hunted down or max steps reached
+                if len(elimination_order) >= self.num_prey or time_step >= self.max_time_steps:
+                    # Predator crossover selection
+                    predator_selection_weights = predator_kill_counts**self.kill_counts_scaling_factor
+                    predator_selection_probabilities = predator_selection_weights / np.sum( predator_selection_weights)
+                    predator_crossover_idx = list(np.random.choice(range(self.num_predator),size=self.num_predator_crossover,replace=False, p=predator_selection_probabilities))
+                    print('predator_crossover_idx')
+                    print(predator_crossover_idx)
+                    
+                    # Prey crossover selection
+                    prey_selection_weights = list(np.array(prey_survival_times)**self.survival_time_scaling_factor)
+                    prey_selection_probabilities =  prey_selection_weights / np.sum( prey_selection_weights)
+
+
+                    if len(elimination_order) >= self.num_prey:
+                        prey_crossover_idx = list(np.random.choice(elimination_order,size=self.num_prey_crossover,replace=False, p=prey_selection_probabilities))
+                        print('prey_crossover_idx')
+                        print(prey_crossover_idx)
+                        
+
+                    elif time_step >= self.max_time_steps:
+                        survivors = list(set(range(num_prey)) - set(elimination_order))
+                        num_select_survivors = np.min([self.num_prey_crossover, len(survivors)])
+
+                        # Less survivors than desired number of prey boids for cross over?
+                        num_remaining = self.num_prey_crossover - num_select_survivors
+                        prey_crossover_idx = list(np.random.choice(survivors,size=num_select_survivors,replace=False))
+                        
+                        print('survivors')
+                        print(survivors)
+                        print('prey_crossover_idx')
+                        print(prey_crossover_idx)
+
+                        # Select the remaining boids for crossover depending on their survival time
+                        if num_remaining:
+                            prey_crossover_idx.extend(np.random.choice(elimination_order,size=num_remaining,replace=False, p=prey_selection_probabilities))
+
+                        print('updated prey_crossover_idx')
+                        print(prey_crossover_idx)
+
+                    exit = True
+
+
+                #self.genetic.next_generation([10], self.predators)
+
+                time_step += 1
+                 
+                time.sleep(0.01)
 
 # ---- GENETIC ALGORITHMS -----
     
@@ -162,13 +237,19 @@ class Simulation:
 if __name__ == "__main__":
 
     # Define the simulation parameters
-    num_prey = 19
-    num_predator = 11
+    num_prey = 50
+    num_predator = 4
+    scale = 0.001
     width = 700
     height = 500
-    num_steps = 100    
+    #num_steps = 100  
+    num_prey_crossover = 10
+    num_predator_crossover = 4
+    max_time_steps = 10000
+    survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
+    kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
 
-    simulation = Simulation(num_prey, num_predator, width, height)
+    simulation = Simulation(num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, survival_time_scaling_factor, kill_counts_scaling_factor)
 
     #simulation.render_and_run(num_steps)   
     simulation.run_forever()
