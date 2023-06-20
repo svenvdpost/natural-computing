@@ -79,9 +79,20 @@ class Prey(Boids.Boids):
         genes["dodging_strength"] = np.mean(self.dodging_strength[parents], axis=0)
 
         return genes
+    
+    def mutate(self, child, scale):
+        super().mutate(child, scale)
 
     def set_traits(self, trait_dic):
         super().set_traits(trait_dic)
 
         self.dodging_distance = np.array(trait_dic["dodging_distance"])
         self.dodging_strength = np.array(trait_dic["dodging_strength"])
+
+    def show_boid(self, boid_id):
+        output = super().show_boid(boid_id)
+
+        dd = self.dodging_distance[boid_id]
+        ds = self.dodging_strength[boid_id]
+
+        return output + f",hd={dd}, cd={ds}"

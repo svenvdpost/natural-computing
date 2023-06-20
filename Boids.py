@@ -111,6 +111,14 @@ class Boids:
 
         return trait_dic
     
+    def mutate(self, child, scale):
+        for trait, value in child.items():
+            if isinstance(value, list):
+                for v in value:
+                    v = np.random.normal(v, scale)
+            else:
+                value = np.random.normal(value, scale)
+    
     def set_traits(self, trait_dic):
         self.alignment_distance = np.array(trait_dic["alignment_distance"])
         self.cohesion_distance = np.array(trait_dic["cohesion_distance"])
@@ -120,3 +128,15 @@ class Boids:
         self.separation_strength = np.array(trait_dic["separation_strength"])
         self.noise_strength = np.array(trait_dic["noise_strength"])
         self.max_velocity = np.array(trait_dic["max_velocity"])
+
+    def show_boid(self, boid_id):
+        ad = self.alignment_distance[boid_id]
+        cd = self.cohesion_distance[boid_id]
+        sd = self.separation_distance[boid_id]
+        als = self.alignment_strength[boid_id]
+        cs = self.cohesion_strength[boid_id]
+        ss = self.separation_strength[boid_id]
+        ns = self.noise_strength[boid_id]
+        mv = self.max_velocity[boid_id]
+
+        return f"ad={ad}, cd={cd}, sd={sd}, als={als}, cs={cs}, ss={ss}, ns={ns}, mv={mv}"

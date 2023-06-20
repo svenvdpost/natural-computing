@@ -10,7 +10,6 @@ import Genetic
 class Simulation:
 
 
-
     def __init__(self, num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor) -> None:
 
         self.num_prey = num_prey
@@ -31,7 +30,7 @@ class Simulation:
         self.canvas = self.init_pygame()
         self.font = pygame.font.SysFont('arial', 15)
 
-        self.genetic = Genetic.Genetic(self, 0.01)
+        self.genetic = None
 
     # ---- PREY ------
     def init_prey(self):
@@ -110,6 +109,10 @@ class Simulation:
 
         return canvas
 
+
+    # ---- GENETIC ----
+    def init_genetic(self, mutation_rate, mutation_scale):
+        self.genetic = Genetic.Genetic(self,mutation_rate, mutation_scale)
 
     # ---- RUNING THE SIMULATION -----
     def render_and_run(self, steps):
@@ -198,28 +201,38 @@ class Simulation:
 
 
                 # Stop simulation if all prey was hunted down or max steps reached
-                if len(elimination_order) >= self.num_prey or time_step >= self.max_time_steps:
+                if len(elimination_order) >= self.num_prey or time_step >= self.max_time_steps: 
+                    # get the boid indexes of both the classes suitable for crossover                  
                     prey_crossover_idx, predator_crossover_idx = self.genetic.crossover_selection(elimination_order, predator_kill_counts, prey_survival_times, time_step)
                     
                     print(f'predator_crossover_idx: {predator_crossover_idx}')
                     print(f'prey_crossover_idx: {prey_crossover_idx}')
 
-                    # create next generation of boids according
+                    # get the best performing boids of each class
+                    alpha_prey, alpha_predator = self.genetic.alpha_boids(elimination_order, predator_kill_counts)
+
+                    print(f"alpha_prey: {alpha_prey}")
+                    print(self.prey.show_boid(alpha_prey))
+                    print(f"alpha_predator: {alpha_predator}")
+                    print(self.predators.show_boid(alpha_predator))
+
+                    # create next generation of boids
                     self.predators = self.genetic.next_generation(predator_crossover_idx, self.predators, procreation="fixed")
                     self.prey = self.genetic.next_generation(prey_crossover_idx, self.prey, procreation="fixed")
                     self.num_predator = self.predators.num_boids
                     self.num_prey = self.prey.num_boids
+
+                    # print generation info
+                    print(f"generation: {generation}")
+                    print(f"num_prey: {self.num_prey}")
+                    print(f"num_predator: {self.num_predator}")
+                    print(f"kill_counts: {predator_kill_counts}")
 
                     # reset simulation parameters for next generation
                     time_step = 0
                     predator_kill_counts = np.zeros(self.predators.num_boids)
                     elimination_order = []
                     prey_survival_times = []
-
-                    # print generation info
-                    print(f"generation: {generation}")
-                    print(f"num_prey: {self.num_prey}")
-                    print(f"num_predator: {self.num_predator}")
 
                     # if one of the classes only has a population of 1 or less, stop the simulation
                     if self.num_prey <= 1 or self.num_predator <= 1:
@@ -255,7 +268,12 @@ if __name__ == "__main__":
     survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
 
+    mutation_rate = 0.5
+    mutation_scale = 0.1
+
     simulation = Simulation(num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor)
+
+    simulation.init_genetic(mutation_rate, mutation_scale)
 
     #simulation.render_and_run(num_steps)   
     simulation.run_forever()

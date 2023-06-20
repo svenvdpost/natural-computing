@@ -10,15 +10,16 @@ import copy
 
 class Genetic:
 
-    def __init__(self, simulation, mutation_rate) -> None:
+    def __init__(self, simulation : Simulation.Simulation, mutation_rate, mutation_scale) -> None:
         self.simulation = simulation
         self.mutation_rate = mutation_rate
+        self.mutation_scale = mutation_rate
 
     # mutate the stats of the boids proportional to the mutation_rate
-    def mutation(self, child):
+    def mutation(self, child, boidclass : Boids.Boids):
         mutate = np.random.choice([True,False], p=[self.mutation_rate, 1-self.mutation_rate])
         if mutate:
-            pass
+            boidclass.mutate(child, self.mutation_scale)
 
     # crossover the stats of the two parents
     def crossover(self, parents, boidclass : Boids.Boids):
@@ -31,7 +32,7 @@ class Genetic:
 
         for _ in range(num_children):
             child = self.crossover(parents, boidclass)
-            self.mutation(child)
+            self.mutation(child, boidclass)
             children.append(child)
         
         return children
@@ -83,6 +84,17 @@ class Genetic:
 
         return prey_crossover_idx, predator_crossover_idx
 
+    # find the best performing boid of a generation
+    def alpha_boids(self, elimination_order, predator_kill_counts):
+        survivors = list(set(range(self.simulation.num_prey)) - set(elimination_order))
+
+        if survivors:
+            alpha_prey = np.random.choice(survivors,size=1)[0]
+        else:
+            alpha_prey = elimination_order[-1]
+        alpa_predator = np.argmax(predator_kill_counts)
+
+        return alpha_prey, alpa_predator
 
     def natural_procreation(self, population, boidclass : Boids.Boids):
         children = []
@@ -94,7 +106,7 @@ class Genetic:
         mean_child = self.crossover(population, boidclass)
         children = [copy.deepcopy(mean_child) for _ in range(boidclass.num_boids)]
         for child in children:
-            self.mutation(child)
+            self.mutation(child, boidclass)
 
         return children
 
