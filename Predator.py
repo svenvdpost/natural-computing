@@ -32,11 +32,9 @@ class Predators(Boids.Boids):
                         noise_strength,
                         max_velocity)
     
-        scale = 0.001
-        self.hunting_distance  = np.random.normal(hunting_distance, scale, num_predator) #  separation_distance num_predator
-        self.hunting_strength = np.random.normal(hunting_strength, scale, (num_predator, 2)) # separation_strength num_prey
-        self.num_predator = num_predator
+        self.hunting_distance  = np.random.normal(hunting_distance, self.scale, num_predator) #  separation_distance num_predator
         self.hunting_strength = np.random.normal(hunting_strength, self.scale, (num_predator, 2)) # separation_strength num_prey
+        self.num_predator = num_predator
         self.elimination_distance = np.random.normal(elimination_distance, self.scale, num_predator) #  separation_distance num_predator
 
     
@@ -91,11 +89,15 @@ class Predators(Boids.Boids):
     def crossover(self, parents):
         genes = super().crossover(parents)
 
-        hunting_distance = np.mean(np.take(self.hunting_distance, parents))
-        hunting_strength = np.mean(np.take(self.hunting_strength, parents))
-        elimination_distance = np.mean(np.take(self.elimination_distance, parents))
+        genes["hunting_distance"] = np.mean(self.hunting_distance[parents])
+        genes["hunting_strength"] = np.mean(self.hunting_strength[parents], axis=1)
+        genes["elimination_distance"] = np.mean(self.elimination_distance[parents])
 
-        return genes[:3] + [hunting_distance, elimination_distance] + genes[3:6] + [hunting_strength] + genes[6:]
+        return genes
     
-    def set_traits(self, trait_matrix):
-        pass
+    def set_traits(self, trait_dic):
+        super().set_traits(trait_dic)
+
+        self.hunting_distance  = np.array(trait_dic["hunting_distance"])
+        self.hunting_strength = np.array(trait_dic["hunting_strength"])
+        self.elimination_distance = np.array(trait_dic["elimination_distance"])

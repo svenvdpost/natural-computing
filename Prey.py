@@ -5,7 +5,6 @@ import Boids
 class Prey(Boids.Boids):
     def __init__(self, 
                  num_prey,
-                 num_predator, 
                  scale,
                  width, 
                  height, 
@@ -34,11 +33,13 @@ class Prey(Boids.Boids):
         
         #TODO implement traits
         self.scale = scale
-        self.dodging_distance  = np.random.normal(dodging_distance, self.scale, num_predator) #  separation_distance 
+        self.dodging_distance  = np.random.normal(dodging_distance, self.scale, num_prey) #  separation_distance 
         self.dodging_strength = np.random.normal(dodging_strength, self.scale, (num_prey, 2)) # separation_strength 
 
     
     def step_pygame(self, predator_positions, predator_velocities):
+
+        self.num_predator = len(predator_positions)
 
         prey_distances = self.get_distances(self.positions)
         predator_distances = self.get_distances(predator_positions)
@@ -60,7 +61,10 @@ class Prey(Boids.Boids):
         return self.positions, self.velocities
     
     def dodging_rule(self, distances, positions_2):
-        close_boids = self.get_close_boids(self.dodging_distance, distances)
+
+        dodging_distance_step = np.repeat(self.dodging_distance[:, np.newaxis], self.num_predator, axis=1)
+
+        close_boids = self.get_close_boids(dodging_distance_step, distances)
         dodging = np.zeros((len(self.positions), 2))
         for i in range(len(self.positions)):
             neighbors = close_boids[i]
@@ -71,4 +75,13 @@ class Prey(Boids.Boids):
     def crossover(self, parents):
         genes = super().crossover(parents)
         
+        genes["dodging_distance"] = np.mean(self.dodging_distance[parents])
+        genes["dodging_strength"] = np.mean(self.dodging_strength[parents], axis=1)
+
         return genes
+
+    def set_traits(self, trait_dic):
+        super().set_traits(trait_dic)
+
+        self.dodging_distance = np.array(trait_dic["dodging_distance"])
+        self.dodging_strength = np.array(trait_dic["dodging_strength"])

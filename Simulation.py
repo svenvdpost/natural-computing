@@ -36,7 +36,6 @@ class Simulation:
     def init_prey(self):
         # Define model parameters
         num_prey = self.num_prey
-        num_predator = self.num_predator
         scale = self.scale
         alignment_distance = 50
         cohesion_distance = 100
@@ -50,7 +49,7 @@ class Simulation:
         max_velocity = 5    
 
         # Create Boids object
-        boids = Prey.Prey(num_prey, num_predator, scale, width, height, alignment_distance, cohesion_distance, separation_distance, dodging_distance,
+        boids = Prey.Prey(num_prey, scale, width, height, alignment_distance, cohesion_distance, separation_distance, dodging_distance,
                             alignment_strength, cohesion_strength, separation_strength, dodging_strength, noise_strength,  max_velocity) # vision_distance,
         
         return boids
@@ -98,36 +97,6 @@ class Simulation:
 
             pygame.draw.circle(self.canvas, (0,0,255), pos, 5)
             pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 5)
-
-    # Select prey and predator boids for crossover
-    def crossover_selection(self, elimination_order, predator_kill_counts, prey_survival_times, time_step):
-        
-        # Predator crossover selection (select the predators that eliminated most boids)
-        predator_selection_weights = predator_kill_counts**self.kill_counts_scaling_factor
-        predator_selection_probabilities = predator_selection_weights / np.sum( predator_selection_weights)
-        predator_crossover_idx = list(np.random.choice(range(self.num_predator),size=self.num_predator_crossover,replace=False, p=predator_selection_probabilities))
-        
-        
-        # Prey crossover selection
-        prey_selection_weights = list(np.array(prey_survival_times)**self.survival_time_scaling_factor)
-        prey_selection_probabilities =  prey_selection_weights / np.sum( prey_selection_weights)
-
-        if len(elimination_order) >= self.num_prey:
-            prey_crossover_idx = list(np.random.choice(elimination_order,size=self.num_prey_crossover,replace=False, p=prey_selection_probabilities))
-
-        elif time_step >= self.max_time_steps:
-            survivors = list(set(range(num_prey)) - set(elimination_order))
-            num_select_survivors = np.min([self.num_prey_crossover, len(survivors)])
-
-            # Less survivors than desired number of prey boids for cross over?
-            num_remaining = self.num_prey_crossover - num_select_survivors
-            prey_crossover_idx = list(np.random.choice(survivors,size=num_select_survivors,replace=False))
-
-            # Select the remaining boids for crossover depending on their survival time
-            if num_remaining:
-                prey_crossover_idx.extend(np.random.choice(elimination_order,size=num_remaining,replace=False, p=prey_selection_probabilities))
-
-        return prey_crossover_idx, predator_crossover_idx
     
 
     # ---- CANVAS -----
@@ -182,6 +151,8 @@ class Simulation:
             prey_survival_times = []
             time_step = 1
             predator_kill_counts = np.zeros(self.num_predator)
+
+            generation = 0
  
             while not exit:
                 for event in pygame.event.get():
@@ -212,34 +183,52 @@ class Simulation:
                 simulation.draw_predators(predators_positions, predators_velocities)
 
                 # Display some stats
-                text_surface = self.font.render(f' num_prey: {self.num_prey - len(elimination_order)}', False, (0, 0, 0)) 
+                text_surface = self.font.render(f' generation: {generation}', False, (0, 0, 0)) 
                 self.canvas.blit(text_surface, (0,0))
-                text_surface = self.font.render(f' kill_counts: {predator_kill_counts}', False, (0, 0, 0)) 
+                text_surface = self.font.render(f' num_prey: {self.num_prey - len(elimination_order)}', False, (0, 0, 0)) 
                 self.canvas.blit(text_surface, (0,20))
-                text_surface = self.font.render(f' time_step: {time_step}', False, (0, 0, 0)) 
+                text_surface = self.font.render(f' kill_counts: {predator_kill_counts}', False, (0, 0, 0)) 
                 self.canvas.blit(text_surface, (0,40))
+                text_surface = self.font.render(f' time_step: {time_step}', False, (0, 0, 0)) 
+                self.canvas.blit(text_surface, (0,60))
                 pygame.display.update()
+
 
                 # Stop simulation if all prey was hunted down or max steps reached
                 if len(elimination_order) >= self.num_prey or time_step >= self.max_time_steps:
-                    prey_crossover_idx, predator_crossover_idx = self.crossover_selection(elimination_order, predator_kill_counts, prey_survival_times, time_step)
+                    prey_crossover_idx, predator_crossover_idx = self.genetic.crossover_selection(self, elimination_order, predator_kill_counts, prey_survival_times, time_step)
                     
                     print(f'predator_crossover_idx: {predator_crossover_idx}')
                     print(f'prey_crossover_idx: {prey_crossover_idx}')
 
-                    exit = True
+                    self.predators = self.genetic.next_generation(predator_crossover_idx, self.predators)
+                    self.prey = self.genetic.next_generation(prey_crossover_idx, self.prey)
+                    self.num_predator = self.predators.num_boids
+                    self.num_prey = self.prey.num_boids
 
+                    #exit = True
 
-                self.genetic.next_generation([0,1,2,3], self.predators)
+                    time_step = 0
+                    predator_kill_counts = np.zeros(self.predators.num_boids)
+                    elimination_order = []
+                    prey_survival_times = []
+
+                    # print generation info
+                    print(f"generation: {generation}")
+                    print(f"num_prey: {self.num_prey}")
+                    print(f"num_predator: {self.num_predator}")
+
+                    # if one of the classes only has a population of 1 or less, stop the simulation
+                    if self.num_prey <= 1 or self.num_predator <= 1:
+                        exit = True
+                        print(f"extinction! num_prey={self.num_prey}, num_predator={self.num_predator}")
+
+                    # update the generation timer
+                    generation += 1
 
                 time_step += 1
                  
                 time.sleep(0.01)
-
-
-# ---- GENETIC ALGORITHMS -----
-    
-
 
 
 if __name__ == "__main__":
@@ -253,7 +242,7 @@ if __name__ == "__main__":
     #num_steps = 100  
     num_prey_crossover = 10
     num_predator_crossover = 4
-    max_time_steps = 1000
+    max_time_steps = 100
     survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
 

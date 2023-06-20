@@ -79,7 +79,6 @@ class Boids:
                 separation[i] = np.sum(self.positions[neighbors] - self.positions[i], axis=0)
         return - separation 
     
-    
 
     def limit_velocity(self):
         speed = np.sqrt(np.sum(self.velocities ** 2, axis=1))
@@ -99,17 +98,27 @@ class Boids:
         return self.positions_over_time, self.velocities_over_time
 
     def crossover(self, parents):
-        alignment_distance = np.take(self.alignment_distance, parents)
-        cohesion_distance = np.take(self.cohesion_distance, parents)
-        separation_distance = np.take(self.separation_distance, parents)
-        alignment_strength = np.take(self.alignment_strength, parents)
-        cohesion_strength = np.take(self.cohesion_strength, parents)
-        separation_strength = np.take(self.separation_strength, parents)
-        noise_strength = np.take(self.noise_strength, parents)
-        max_velocity = np.take(self.max_velocity, parents)
+        trait_dic = {}
 
-        trait_matrix = np.array([alignment_distance, cohesion_distance, separation_distance,
-                alignment_strength, cohesion_strength, separation_strength, 
-                noise_strength, max_velocity])
+        #TODO check if axis=1 is correct for the np.mean operation
 
-        return list(np.mean(trait_matrix, 1))
+        trait_dic["alignment_distance"] = np.mean(self.alignment_distance[parents])
+        trait_dic["cohesion_distance"] = np.mean(self.cohesion_distance[parents])
+        trait_dic["separation_distance"] = np.mean(self.separation_distance[parents])
+        trait_dic["alignment_strength"] = np.mean(self.alignment_strength[parents], axis=1)
+        trait_dic["cohesion_strength"] = np.mean(self.cohesion_strength[parents], axis=1)
+        trait_dic["separation_strength"] = np.mean(self.separation_strength[parents], axis=1)
+        trait_dic["noise_strength"] = np.mean(self.noise_strength[parents], axis=1)
+        trait_dic["max_velocity"] = np.mean(self.max_velocity[parents])
+
+        return trait_dic
+    
+    def set_traits(self, trait_dic):
+        self.alignment_distance = np.array(trait_dic["alignment_distance"])
+        self.cohesion_distance = np.array(trait_dic["cohesion_distance"])
+        self.separation_distance = np.array(trait_dic["separation_distance"])
+        self.alignment_strength = np.array(trait_dic["alignment_strength"])
+        self.cohesion_strength = np.array(trait_dic["cohesion_strength"])
+        self.separation_strength = np.array(trait_dic["separation_strength"])
+        self.noise_strength = np.array(trait_dic["noise_strength"])
+        self.max_velocity = np.array(trait_dic["max_velocity"])
