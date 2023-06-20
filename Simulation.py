@@ -11,7 +11,7 @@ class Simulation:
 
 
 
-    def __init__(self, num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, survival_time_scaling_factor, kill_counts_scaling_factor) -> None:
+    def __init__(self, num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor) -> None:
 
         self.num_prey = num_prey
         self.num_predator = num_predator
@@ -22,6 +22,7 @@ class Simulation:
         self.num_prey_crossover = num_prey_crossover
         self.num_predator_crossover = num_predator_crossover
         self.max_time_steps = max_time_steps
+        self.max_generations = max_generations
         self.survival_time_scaling_factor = survival_time_scaling_factor
         self.kill_counts_scaling_factor = kill_counts_scaling_factor
 
@@ -137,7 +138,7 @@ class Simulation:
 
                 time.sleep(0.05)
   
-    def run_forever(self):
+    def run_forever(self, render_sim=True):
 
             exit = False
 
@@ -162,16 +163,16 @@ class Simulation:
                 # reset the canvas
                 self.canvas.fill((255,255,255))
 
+                # let the prey do simulation step
                 prey_positions, prey_velocities = self.prey.step_pygame(predators_positions, predators_velocities)                            
-                
-
+                # let the predators do a simulatino step
                 predators_positions, predators_velocities, eliminated_prey, predator_kills = self.predators.step_pygame(prey_positions, prey_velocities)   # prey_positions, prey_velocities   
 
                 # remove/deactivate eliminated prey
                 elimination_order.extend(eliminated_prey)
                 prey_positions[eliminated_prey] = None
 
-                # Stor how long the eliminated prey boids survived within the simulation
+                # Store how long the eliminated prey boids survived within the simulation
                 for _ in range(len(eliminated_prey)):
                     prey_survival_times.append(time_step)
 
@@ -179,8 +180,9 @@ class Simulation:
                 predator_kill_counts += predator_kills
                 
                 # Draw prey and predators
-                simulation.draw_prey(prey_positions, prey_velocities)                     
-                simulation.draw_predators(predators_positions, predators_velocities)
+                if render_sim:
+                    simulation.draw_prey(prey_positions, prey_velocities)                     
+                    simulation.draw_predators(predators_positions, predators_velocities)
 
                 # Display some stats
                 text_surface = self.font.render(f' generation: {generation}', False, (0, 0, 0)) 
@@ -191,23 +193,24 @@ class Simulation:
                 self.canvas.blit(text_surface, (0,40))
                 text_surface = self.font.render(f' time_step: {time_step}', False, (0, 0, 0)) 
                 self.canvas.blit(text_surface, (0,60))
+
                 pygame.display.update()
 
 
                 # Stop simulation if all prey was hunted down or max steps reached
                 if len(elimination_order) >= self.num_prey or time_step >= self.max_time_steps:
-                    prey_crossover_idx, predator_crossover_idx = self.genetic.crossover_selection(self, elimination_order, predator_kill_counts, prey_survival_times, time_step)
+                    prey_crossover_idx, predator_crossover_idx = self.genetic.crossover_selection(elimination_order, predator_kill_counts, prey_survival_times, time_step)
                     
                     print(f'predator_crossover_idx: {predator_crossover_idx}')
                     print(f'prey_crossover_idx: {prey_crossover_idx}')
 
-                    self.predators = self.genetic.next_generation(predator_crossover_idx, self.predators)
-                    self.prey = self.genetic.next_generation(prey_crossover_idx, self.prey)
+                    # create next generation of boids according
+                    self.predators = self.genetic.next_generation(predator_crossover_idx, self.predators, procreation="fixed")
+                    self.prey = self.genetic.next_generation(prey_crossover_idx, self.prey, procreation="fixed")
                     self.num_predator = self.predators.num_boids
                     self.num_prey = self.prey.num_boids
 
-                    #exit = True
-
+                    # reset simulation parameters for next generation
                     time_step = 0
                     predator_kill_counts = np.zeros(self.predators.num_boids)
                     elimination_order = []
@@ -226,9 +229,14 @@ class Simulation:
                     # update the generation timer
                     generation += 1
 
+                    if generation >= max_generations:
+                        print("max generations reached")
+                        exit = True
+
                 time_step += 1
-                 
-                time.sleep(0.01)
+                
+                if render_sim:
+                    time.sleep(0.01)
 
 
 if __name__ == "__main__":
@@ -243,10 +251,11 @@ if __name__ == "__main__":
     num_prey_crossover = 10
     num_predator_crossover = 4
     max_time_steps = 100
+    max_generations = 100
     survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
 
-    simulation = Simulation(num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, survival_time_scaling_factor, kill_counts_scaling_factor)
+    simulation = Simulation(num_prey, num_predator, scale, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor)
 
     #simulation.render_and_run(num_steps)   
     simulation.run_forever()

@@ -6,25 +6,13 @@ import Simulation
 from random import shuffle
 import numpy as np
 from math import ceil
+import copy
 
 class Genetic:
 
     def __init__(self, simulation, mutation_rate) -> None:
         self.simulation = simulation
         self.mutation_rate = mutation_rate
-        
-        #self.next_positions = []
-        #self.next_velocity = []
-        self.next_alignment_distance = []
-        self.next_cohesion_distance = []
-        self.next_separation_distance = []
-        self.next_vision_distance = []
-        self.next_alignment_strength = []
-        self.next_cohesion_strength = []
-        self.next_separation_strength = []
-        self.next_noise_strength = []
-        self.next_max_velocity = []
-        self.next_traits = {}
 
     # mutate the stats of the boids proportional to the mutation_rate
     def mutation(self, child):
@@ -38,7 +26,7 @@ class Genetic:
     
     # create children from the two parents
     def make_children(self, parents, boidclass : Boids.Boids):
-        num_children = ceil(np.random.normal(2, 0.5))
+        num_children = ceil(np.random.normal(5, 4))
         children = []
 
         for _ in range(num_children):
@@ -56,8 +44,10 @@ class Genetic:
         return zip(group1, group2)
 
     # Select prey and predator boids for crossover
-    def crossover_selection(self, sim : Simulation, elimination_order, predator_kill_counts, prey_survival_times, time_step):
+    def crossover_selection(self, elimination_order, predator_kill_counts, prey_survival_times, time_step):
         
+        sim = self.simulation # easier readability
+
         # Predator crossover selection (select the predators that eliminated most boids)
         predator_selection_weights = predator_kill_counts**sim.kill_counts_scaling_factor
         predator_selection_weights = np.where(predator_selection_weights == 0, 0.01, predator_selection_weights)
@@ -94,17 +84,34 @@ class Genetic:
         return prey_crossover_idx, predator_crossover_idx
 
 
-    # create the next generation from the population
-    def next_generation(self, population, boidclass : Boids.Boids):
+    def natural_procreation(self, population, boidclass : Boids.Boids):
         children = []
         for _, (parent1, parent2) in enumerate(self.pair_random(population)):
-            #print(parent1, parent2)
             children = children + self.make_children([parent1, parent2], boidclass)
+        return children
 
+    def fixed_procreation(self, population, boidclass : Boids.Boids):
+        mean_child = self.crossover(population, boidclass)
+        children = [copy.deepcopy(mean_child) for _ in range(boidclass.num_boids)]
+        for child in children:
+            self.mutation(child)
+
+        return children
+
+    # create the next generation from the population
+    def next_generation(self, population, boidclass : Boids.Boids, procreation):
+        children = []
+
+        if procreation == "natural":
+            children = self.natural_procreation(population, boidclass)
+        elif procreation == "fixed":
+            children = self.fixed_procreation(population, boidclass)
+
+        # reshape list from child orented to trait oriented
         reshaped_list = [list(x) for x in zip(*list(map(lambda x: x.values(), children)))]
 
+        # store the children traits in a dictionary
         traits_dic = {}
-
         for child in children:
             for trait, value in child.items():
                 try:

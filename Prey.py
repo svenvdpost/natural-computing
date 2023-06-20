@@ -76,7 +76,7 @@ class Prey(Boids.Boids):
         genes = super().crossover(parents)
         
         genes["dodging_distance"] = np.mean(self.dodging_distance[parents])
-        genes["dodging_strength"] = np.mean(self.dodging_strength[parents], axis=1)
+        genes["dodging_strength"] = np.mean(self.dodging_strength[parents], axis=0)
 
         return genes
 

@@ -90,7 +90,7 @@ class Predators(Boids.Boids):
         genes = super().crossover(parents)
 
         genes["hunting_distance"] = np.mean(self.hunting_distance[parents])
-        genes["hunting_strength"] = np.mean(self.hunting_strength[parents], axis=1)
+        genes["hunting_strength"] = np.mean(self.hunting_strength[parents], axis=0)
         genes["elimination_distance"] = np.mean(self.elimination_distance[parents])
 
         return genes

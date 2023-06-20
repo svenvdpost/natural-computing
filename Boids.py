@@ -100,15 +100,13 @@ class Boids:
     def crossover(self, parents):
         trait_dic = {}
 
-        #TODO check if axis=1 is correct for the np.mean operation
-
         trait_dic["alignment_distance"] = np.mean(self.alignment_distance[parents])
         trait_dic["cohesion_distance"] = np.mean(self.cohesion_distance[parents])
         trait_dic["separation_distance"] = np.mean(self.separation_distance[parents])
-        trait_dic["alignment_strength"] = np.mean(self.alignment_strength[parents], axis=1)
-        trait_dic["cohesion_strength"] = np.mean(self.cohesion_strength[parents], axis=1)
-        trait_dic["separation_strength"] = np.mean(self.separation_strength[parents], axis=1)
-        trait_dic["noise_strength"] = np.mean(self.noise_strength[parents], axis=1)
+        trait_dic["alignment_strength"] = np.mean(self.alignment_strength[parents], axis=0)
+        trait_dic["cohesion_strength"] = np.mean(self.cohesion_strength[parents], axis=0)
+        trait_dic["separation_strength"] = np.mean(self.separation_strength[parents], axis=0)
+        trait_dic["noise_strength"] = np.mean(self.noise_strength[parents], axis=0)
         trait_dic["max_velocity"] = np.mean(self.max_velocity[parents])
 
         return trait_dic
