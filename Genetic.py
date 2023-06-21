@@ -65,11 +65,9 @@ class Genetic:
         size = min(sim.num_prey_crossover, sim.num_prey)
 
         if len(elimination_order) >= sim.num_prey:
-            print("genocide")
             prey_crossover_idx = list(np.random.choice(elimination_order,size=size,replace=False, p=prey_selection_probabilities))
 
         elif time_step >= sim.max_time_steps:
-            print("times up")
             survivors = list(set(range(sim.num_prey)) - set(elimination_order))
             num_select_survivors = np.min([size, len(survivors)])
 
@@ -102,10 +100,11 @@ class Genetic:
     def next_generation(self, population, boidclass : Boids.Boids, procreation):
         children = []
 
-        if procreation == "natural":
-            children = self.natural_procreation(population, boidclass)
-        elif procreation == "fixed":
-            children = self.fixed_procreation(population, boidclass)
+        while children == []:
+            if procreation == "natural":
+                children = self.natural_procreation(population, boidclass)
+            elif procreation == "fixed":
+                children = self.fixed_procreation(population, boidclass)
 
         # reshape list from child orented to trait oriented
         reshaped_list = [list(x) for x in zip(*list(map(lambda x: x.values(), children)))]
