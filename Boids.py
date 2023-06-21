@@ -4,7 +4,7 @@ import numpy as np
 class Boids:
     def __init__(self, 
                  num_boids,
-                 scale, 
+                 coefficient_of_variation, 
                  width, 
                  height, 
                  alignment_distance, 
@@ -20,24 +20,34 @@ class Boids:
         self.num_boids = num_boids
         self.positions = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))        
         self.velocities = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))
-        self.scale = scale
+        self.coefficient_of_variation = coefficient_of_variation
         self.width = width
         self.height = height
         
+        self.trait_names = ['alignment_distance', 'cohesion_distance', 'separation_distance', 'alignment_strength', 'cohesion_strength', 'separation_strength', 'noise_strength', 'max_velocity']
 
 
         # TODO suggestion: instead of drawing different samples for the x and y strenght, make them the same. Maybe not necessary however.
-        #scale = 0.001
+        #coefficient_of_variation = 0.001
 
-        self.alignment_distance = np.random.normal(alignment_distance, self.scale, num_boids) # alignment_distance 
-        self.cohesion_distance = np.random.normal(cohesion_distance, self.scale, num_boids) # cohesion_distance 
-        self.separation_distance = np.random.normal(separation_distance, self.scale, num_boids) #  separation_distance 
-        self.alignment_strength = np.random.normal(alignment_strength, self.scale, (num_boids, 2)) # alignment_strength 
-        self.cohesion_strength = np.random.normal(cohesion_strength, self.scale, (num_boids, 2)) # cohesion_strength 
-        self.separation_strength = np.random.normal(separation_strength, self.scale, (num_boids, 2)) # separation_strength 
-        self.noise_strength = np.random.normal(noise_strength, self.scale, (num_boids, 2)) # noise_strength      
+        self.alignment_distance = np.random.normal(alignment_distance, self.coefficient_of_variation*alignment_distance, num_boids) # alignment_distance 
+        self.cohesion_distance = np.random.normal(cohesion_distance, self.coefficient_of_variation*cohesion_distance, num_boids) # cohesion_distance 
+        self.separation_distance = np.random.normal(separation_distance, self.coefficient_of_variation*separation_distance, num_boids) #  separation_distance 
+        self.alignment_strength = np.random.normal(alignment_strength, self.coefficient_of_variation*alignment_strength, num_boids) # alignment_strength 
+        self.cohesion_strength = np.random.normal(cohesion_strength, self.coefficient_of_variation*cohesion_strength, num_boids) # cohesion_strength 
+        self.separation_strength = np.random.normal(separation_strength, self.coefficient_of_variation*separation_strength, num_boids) # separation_strength 
+        self.noise_strength = np.random.normal(noise_strength, self.coefficient_of_variation*noise_strength, num_boids) # noise_strength  
 
-        self.max_velocity = np.random.normal(max_velocity, scale, num_boids) # max_velocity
+
+        '''
+        self.alignment_strength = np.random.normal(alignment_strength, self.coefficient_of_variation, (num_boids, 2)) # alignment_strength 
+        self.cohesion_strength = np.random.normal(cohesion_strength, self.coefficient_of_variation, (num_boids, 2)) # cohesion_strength 
+        self.separation_strength = np.random.normal(separation_strength, self.coefficient_of_variation, (num_boids, 2)) # separation_strength 
+        self.noise_strength = np.random.normal(noise_strength, self.coefficient_of_variation, (num_boids, 2)) # noise_strength  
+        '''
+    
+
+        self.max_velocity = np.random.normal(max_velocity, coefficient_of_variation, num_boids) # max_velocity
 
         self.positions_over_time = [self.positions]
         self.velocities_over_time = [self.velocities]
@@ -120,3 +130,7 @@ class Boids:
         self.separation_strength = np.array(trait_dic["separation_strength"])
         self.noise_strength = np.array(trait_dic["noise_strength"])
         self.max_velocity = np.array(trait_dic["max_velocity"])
+
+    
+    def get_trait_names(self):
+        return self.trait_names
