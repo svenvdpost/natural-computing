@@ -14,7 +14,7 @@ class Simulation:
 
 
 
-    def __init__(self, num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim) -> None:
+    def __init__(self, num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim_verbosity) -> None:
 
         self.num_prey = num_prey
         self.num_predator = num_predator
@@ -29,32 +29,16 @@ class Simulation:
         self.survival_time_scaling_factor = survival_time_scaling_factor
         self.kill_counts_scaling_factor = kill_counts_scaling_factor
 
-        self.render_sim = render_sim
+        self.render_sim_verbosity = render_sim_verbosity
 
         self.prey = self.init_prey()        
         self.predators = self.init_predators()
         self.canvas = self.init_pygame()
         self.font = pygame.font.SysFont('arial', 15)
-        
-        #self.canvas = self.init_pygame()
 
         self.genetic = Genetic.Genetic(self, 0.01)
-
-        ###
-        #self.fig, self.axes = plt.subplots(len(self.prey.trait_names), 1, figsize=(8, 16))
-        '''
-        self.fig, self.ax = plt.subplots(figsize=(8, 6))
-        self.colors = ['blue', 'orange', 'green', 'red', 'purple', 'brown']
-        
-        '''
-        
-        #plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.tab20c.colors)
         self.fig, self.axs = plt.subplots(2, figsize=(8, 8))
-        #self.colors = ['blue', 'orange', 'green', 'red', 'purple', 'brown']
         self.traits = []
-        #self.axs[:].legend() =None
-        #self.legend = None
-        ###
 
 
     # ---- PREY ------
@@ -83,15 +67,8 @@ class Simulation:
         shape = pygame.Surface([20,20])
 
         for pos, vel in zip(positions, velocities):
-            #angle = np.angle(vel, deg=True)
-            #x, y = pos
-            #shape = pygame.Rect(x, y, 5, 10)
-            #angled_shape = pygame.transform.rotate(shape, angle)
-            #rectangle = angled_shape.get_rect()
-
             pygame.draw.circle(self.canvas, (255,0,0), pos, 3)
             pygame.draw.circle(self.canvas, (0,255,0), pos + vel, 3)
-            #pygame.draw.rect(self.canvas, (0,0,255), rectangle)
 
     # ---- PREDATORS ------
     def init_predators(self):
@@ -128,7 +105,7 @@ class Simulation:
     def init_pygame(self):
         pygame.init()
 
-        if self.render_sim:
+        if self.render_sim_verbosity:
             canvas = pygame.display.set_mode((self.width, self.height))
             pygame.display.set_caption("Boid simulation")
 
@@ -173,7 +150,6 @@ class Simulation:
     
     def update_trait_dict(self, boid_class, crossover_idx, traits):
         mean_traits = boid_class.crossover(crossover_idx)
-        #print(f'mean_traits: {mean_traits}')
         for trait in boid_class.trait_names:
             traits[trait].append(mean_traits[trait])
 
@@ -191,7 +167,7 @@ class Simulation:
 
             x = range(len(traits[next(iter(traits))]))
             color = iter(cm.jet(np.linspace(0, 1, len(traits))))
-            print(f'l: {len(traits)}')
+            #print(f'l: {len(traits)}')
 
             for j, trait in enumerate(traits):
                 c = next(color)
@@ -269,7 +245,7 @@ class Simulation:
                 predator_kill_counts += predator_kills
                 
                 # Draw prey and predators
-                if self.render_sim:
+                if self.render_sim_verbosity == 4  or (self.render_sim_verbosity == (1 or 2) and (generation == max_generations-1 or self.num_prey <= 1 or self.num_predator <= 1)) or (self.render_sim_verbosity == 2 and generation == 0): #or generation == 0
                      # reset the canvas
                     self.canvas.fill((255,255,255))
                     simulation.draw_prey(prey_positions, prey_velocities)                     
@@ -298,13 +274,13 @@ class Simulation:
                     # if one of the classes only has a population of 1 or less, stop the simulation
                     if self.num_prey <= 1 or self.num_predator <= 1:
                         print(f"extinction! num_prey={self.num_prey}, num_predator={self.num_predator}")
-                        print(f'mean_prey_traits: {mean_prey_traits}')
+                        #print(f'mean_prey_traits: {mean_prey_traits}')
                         input("Press Enter to quit...")
                         exit = True
 
                     if generation >= max_generations:
                         print("max generations reached")
-                        print(f'mean_prey_traits: {mean_prey_traits}')
+                        #print(f'mean_prey_traits: {mean_prey_traits}')
                         input("Press Enter to quit...")
                         exit = True
 
@@ -349,12 +325,12 @@ if __name__ == "__main__":
     num_prey_crossover = 10
     num_predator_crossover = 4
     max_time_steps = 5000
-    max_generations = 50
+    max_generations = 15
     survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
-    render_sim = False
+    render_sim_verbosity = 1 # 0: do not render any simulation; 1: only render final generation simulation; 2: render initial + final generation simulation; 3: render each simulation
 
-    simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim)
+    simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim_verbosity)
 
     #simulation.render_and_run(num_steps)   
     simulation.run_forever()
