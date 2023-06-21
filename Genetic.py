@@ -118,7 +118,7 @@ class Genetic:
                 except:
                     traits_dic[trait] = [value]
 
-        next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later
+        next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height, boidclass.environment] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later
         next_generation_boidclass.set_traits(traits_dic)
 
         return next_generation_boidclass

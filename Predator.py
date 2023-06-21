@@ -8,6 +8,9 @@ class Predators(Boids.Boids):
                  coefficient_of_variation,
                  width, 
                  height, 
+                 environment,
+                 avoid_border_distance,
+                 avoid_border_strength,
                  alignment_distance, 
                  cohesion_distance, 
                  separation_distance,
@@ -23,6 +26,9 @@ class Predators(Boids.Boids):
                         coefficient_of_variation,
                         width, 
                         height, 
+                        environment,
+                        avoid_border_distance,
+                        avoid_border_strength,
                         alignment_distance, 
                         cohesion_distance, 
                         separation_distance,
@@ -53,7 +59,6 @@ class Predators(Boids.Boids):
         hunting = self.hunting_rule(prey_distances, prey_positions)
 
         eliminate, predator_kill_counts = self.elimination(prey_distances)
-        #print(eliminate)
 
         alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength[:, np.newaxis]) * self.alignment_strength[:, np.newaxis]
         cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength[:, np.newaxis]) * self.cohesion_strength[:, np.newaxis]
@@ -61,8 +66,16 @@ class Predators(Boids.Boids):
         hunting_correction = (hunting + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.hunting_strength[:, np.newaxis]
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction + hunting_correction
+
+        if self.environment == 'hard_borders':
+            avoid_border = self.avoid_border_rule(self.positions)
+            avoid_border_correction = (avoid_border + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.avoid_border_strength[:, np.newaxis]
+            self.velocities += avoid_border_correction
+
+            
         self.limit_velocity()
-        self.positions = self.wrap(self.positions + self.velocities)
+
+        self.positions = self.update_positions(self.positions + self.velocities)
 
         return self.positions, self.velocities, eliminate, predator_kill_counts
     
@@ -92,7 +105,7 @@ class Predators(Boids.Boids):
         genes = super().crossover(parents)
 
         genes["hunting_distance"] = np.mean(self.hunting_distance[parents])
-        genes["hunting_strength"] = np.mean(self.hunting_strength[parents], axis=0)
+        genes["hunting_strength"] = np.mean(self.hunting_strength[parents])
         genes["elimination_distance"] = np.mean(self.elimination_distance[parents])
 
         return genes
