@@ -95,4 +95,4 @@ class Prey(Boids.Boids):
         dd = self.dodging_distance[boid_id]
         ds = self.dodging_strength[boid_id]
 
-        return output + f",hd={dd}, cd={ds}"
+        return output + f",dd={dd}, ds={ds}"
