@@ -67,11 +67,9 @@ class Genetic:
         size = min(sim.num_prey_crossover, sim.num_prey)
 
         if len(elimination_order) >= sim.num_prey:
-            print("genocide")
             prey_crossover_idx = list(np.random.choice(elimination_order,size=size,replace=False, p=prey_selection_probabilities))
 
         elif time_step >= sim.max_time_steps:
-            print("times up")
             survivors = list(set(range(sim.num_prey)) - set(elimination_order))
             num_select_survivors = np.min([size, len(survivors)])
 
@@ -134,7 +132,7 @@ class Genetic:
                 except:
                     traits_dic[trait] = [value]
 
-        next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later
+        next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height, boidclass.environment] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later
         next_generation_boidclass.set_traits(traits_dic)
 
         return next_generation_boidclass

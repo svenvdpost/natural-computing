@@ -8,6 +8,9 @@ class Prey(Boids.Boids):
                  coefficient_of_variation,
                  width, 
                  height, 
+                 environment,
+                 avoid_border_distance,
+                 avoid_border_strength,
                  alignment_distance, 
                  cohesion_distance, 
                  separation_distance, 
@@ -22,6 +25,9 @@ class Prey(Boids.Boids):
                         coefficient_of_variation,
                         width, 
                         height, 
+                        environment,
+                        avoid_border_distance,
+                        avoid_border_strength,
                         alignment_distance, 
                         cohesion_distance, 
                         separation_distance, 
@@ -50,6 +56,7 @@ class Prey(Boids.Boids):
         cohesion = self.cohesion_rule(prey_distances)
         separation = self.separation_rule(prey_distances)
         dodging = self.dodging_rule(predator_distances, predator_positions)
+        
 
         alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength[:, np.newaxis]) * self.alignment_strength[:, np.newaxis]
         cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength[:, np.newaxis]) * self.cohesion_strength[:, np.newaxis]
@@ -57,8 +64,18 @@ class Prey(Boids.Boids):
         dodging_correction = (dodging + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.dodging_strength[:, np.newaxis]
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction + dodging_correction
+
+
+        if self.environment == 'hard_borders':
+            avoid_border = self.avoid_border_rule(self.positions)
+            avoid_border_correction = (avoid_border + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.avoid_border_strength[:, np.newaxis]
+            self.velocities += avoid_border_correction
+
+
+
         self.limit_velocity()
-        self.positions = self.wrap(self.positions + self.velocities)
+
+        self.positions = self.update_positions(self.positions + self.velocities)
 
         return self.positions, self.velocities
     
