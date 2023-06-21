@@ -13,7 +13,7 @@ class Genetic:
     def __init__(self, simulation : Simulation.Simulation, mutation_rate, mutation_scale) -> None:
         self.simulation = simulation
         self.mutation_rate = mutation_rate
-        self.mutation_scale = mutation_rate
+        self.mutation_scale = mutation_scale
 
     # mutate the stats of the boids proportional to the mutation_rate
     def mutation(self, child, boidclass : Boids.Boids):

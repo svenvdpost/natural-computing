@@ -5,7 +5,7 @@ import Boids
 class Predators(Boids.Boids):
     def __init__(self, 
                  num_predator, 
-                 scale,
+                 coefficient_of_variation,
                  width, 
                  height, 
                  alignment_distance, 
@@ -20,7 +20,7 @@ class Predators(Boids.Boids):
                  noise_strength,
                  max_velocity):
         super().__init__(num_predator, 
-                        scale,
+                        coefficient_of_variation,
                         width, 
                         height, 
                         alignment_distance, 
@@ -32,10 +32,12 @@ class Predators(Boids.Boids):
                         noise_strength,
                         max_velocity)
     
-        self.hunting_distance  = np.random.normal(hunting_distance, self.scale, num_predator) #  separation_distance num_predator
-        self.hunting_strength = np.random.normal(hunting_strength, self.scale, (num_predator, 2)) # separation_strength num_prey
+        self.hunting_distance  = np.random.normal(hunting_distance, self.coefficient_of_variation*hunting_distance, num_predator) #  separation_distance num_predator
+        self.hunting_strength = np.random.normal(hunting_strength, self.coefficient_of_variation*hunting_strength, num_predator) # separation_strength num_prey
         self.num_predator = num_predator
-        self.elimination_distance = np.random.normal(elimination_distance, self.scale, num_predator) #  separation_distance num_predator
+        self.elimination_distance = np.random.normal(elimination_distance, self.coefficient_of_variation*elimination_distance, num_predator) #  separation_distance num_predator
+
+        self.trait_names = super().get_trait_names() + ['hunting_distance', 'hunting_strength', 'elimination_distance']
 
     
     def step_pygame(self, prey_positions, prey_velocities):
@@ -53,10 +55,10 @@ class Predators(Boids.Boids):
         eliminate, predator_kill_counts = self.elimination(prey_distances)
         #print(eliminate)
 
-        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength) * self.alignment_strength
-        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength) * self.cohesion_strength
-        separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.separation_strength
-        hunting_correction = (hunting + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.hunting_strength
+        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength[:, np.newaxis]) * self.alignment_strength[:, np.newaxis]
+        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength[:, np.newaxis]) * self.cohesion_strength[:, np.newaxis]
+        separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.separation_strength[:, np.newaxis]
+        hunting_correction = (hunting + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.hunting_strength[:, np.newaxis]
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction + hunting_correction
         self.limit_velocity()
@@ -89,9 +91,9 @@ class Predators(Boids.Boids):
     def crossover(self, parents):
         genes = super().crossover(parents)
 
-        genes["hunting_distance"] = np.mean(self.hunting_distance[parents])
-        genes["hunting_strength"] = np.mean(self.hunting_strength[parents], axis=0)
-        genes["elimination_distance"] = np.mean(self.elimination_distance[parents])
+        genes["hunting_distance"] = np.max(self.hunting_distance[parents])
+        genes["hunting_strength"] = np.max(self.hunting_strength[parents], axis=0)
+        genes["elimination_distance"] = np.max(self.elimination_distance[parents])
 
         return genes
     

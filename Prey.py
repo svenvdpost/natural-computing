@@ -5,7 +5,7 @@ import Boids
 class Prey(Boids.Boids):
     def __init__(self, 
                  num_prey,
-                 scale,
+                 coefficient_of_variation,
                  width, 
                  height, 
                  alignment_distance, 
@@ -19,7 +19,7 @@ class Prey(Boids.Boids):
                  noise_strength,
                  max_velocity):
         super().__init__(num_prey,
-                        scale,
+                        coefficient_of_variation,
                         width, 
                         height, 
                         alignment_distance, 
@@ -32,9 +32,11 @@ class Prey(Boids.Boids):
                         max_velocity)
         
         #TODO implement traits
-        self.scale = scale
-        self.dodging_distance  = np.random.normal(dodging_distance, self.scale, num_prey) #  separation_distance 
-        self.dodging_strength = np.random.normal(dodging_strength, self.scale, (num_prey, 2)) # separation_strength 
+        self.coefficient_of_variation = coefficient_of_variation
+        self.dodging_distance  = np.random.normal(dodging_distance, self.coefficient_of_variation*dodging_distance, num_prey) #  separation_distance 
+        self.dodging_strength = np.random.normal(dodging_strength, self.coefficient_of_variation*dodging_strength, num_prey) # separation_strength 
+        
+        self.trait_names = super().get_trait_names() + ['dodging_distance', 'dodging_strength']
 
     
     def step_pygame(self, predator_positions, predator_velocities):
@@ -49,10 +51,10 @@ class Prey(Boids.Boids):
         separation = self.separation_rule(prey_distances)
         dodging = self.dodging_rule(predator_distances, predator_positions)
 
-        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength) * self.alignment_strength
-        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength) * self.cohesion_strength
-        separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.separation_strength
-        dodging_correction = (dodging + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength) * self.dodging_strength
+        alignment_correction  = (alignment + np.random.uniform(-1,1, (self.num_boids, 2))   * self.noise_strength[:, np.newaxis]) * self.alignment_strength[:, np.newaxis]
+        cohesion_correction   = (cohesion + np.random.uniform(-1,1, (self.num_boids, 2))    * self.noise_strength[:, np.newaxis]) * self.cohesion_strength[:, np.newaxis]
+        separation_correction = (separation + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.separation_strength[:, np.newaxis]
+        dodging_correction = (dodging + np.random.uniform(-1,1, (self.num_boids, 2)) * self.noise_strength[:, np.newaxis]) * self.dodging_strength[:, np.newaxis]
 
         self.velocities += alignment_correction + cohesion_correction + separation_correction + dodging_correction
         self.limit_velocity()
@@ -75,8 +77,8 @@ class Prey(Boids.Boids):
     def crossover(self, parents):
         genes = super().crossover(parents)
         
-        genes["dodging_distance"] = np.mean(self.dodging_distance[parents])
-        genes["dodging_strength"] = np.mean(self.dodging_strength[parents], axis=0)
+        genes["dodging_distance"] = np.max(self.dodging_distance[parents])
+        genes["dodging_strength"] = np.max(self.dodging_strength[parents], axis=0)
 
         return genes
     
