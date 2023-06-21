@@ -195,13 +195,13 @@ class Simulation:
 
             x = range(len(traits[next(iter(traits))]))
             color = iter(cm.jet(np.linspace(0, 1, len(traits))))
-            print(f'l: {len(traits)}')
+            #print(f'l: {len(traits)}')
 
             for j, trait in enumerate(traits):
                 c = next(color)
                 values = traits[trait]
                 normalized_trait = (np.array(values) - values[0]) / np.abs(values[0])  * 100
-                print(f'{trait}: {normalized_trait}')
+                #print(f'{trait}: {normalized_trait}')
 
                 if trait not in self.traits:
                     ax.plot(x, normalized_trait,  label=trait, c=c)
@@ -358,7 +358,7 @@ if __name__ == "__main__":
     height = 500 
     num_prey_crossover = 10
     num_predator_crossover = 4
-    max_time_steps = 5000
+    max_time_steps = 100
     max_generations = 50
     survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
@@ -367,7 +367,7 @@ if __name__ == "__main__":
     mutation_rate = 0.5
     mutation_scale = 0.1
 
-    simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, False)
+    simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, True)
 
     simulation.init_genetic(mutation_rate, mutation_scale)
 

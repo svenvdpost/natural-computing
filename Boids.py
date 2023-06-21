@@ -24,8 +24,6 @@ class Boids:
         self.width = width
         self.height = height
         
-        self.trait_names = ['alignment_distance', 'cohesion_distance', 'separation_distance', 'alignment_strength', 'cohesion_strength', 'separation_strength', 'noise_strength', 'max_velocity']
-
 
         # TODO suggestion: instead of drawing different samples for the x and y strenght, make them the same. Maybe not necessary however.
         #coefficient_of_variation = 0.001
@@ -51,6 +49,10 @@ class Boids:
 
         self.positions_over_time = [self.positions]
         self.velocities_over_time = [self.velocities]
+
+        # for iterating over the traits
+        self.trait_names = ['alignment_distance', 'cohesion_distance', 'separation_distance', 'alignment_strength', 'cohesion_strength', 'separation_strength', 'noise_strength', 'max_velocity']
+        self.trait_matrix = [self.alignment_distance, self.cohesion_distance, self.separation_distance, self.alignment_strength, self.cohesion_strength, self.separation_strength, self.noise_strength, self.max_velocity]
 
         # Optimization        
         #self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance), ("separation", self.separation_distance)], key=lambda x: x[1])
@@ -110,6 +112,10 @@ class Boids:
     def crossover(self, parents):
         trait_dic = {}
 
+        # for (trait_name, traits) in zip(self.trait_names, self.trait_matrix):
+        #     trait_dic[trait_name] = np.random.choice(traits[parents], 1)[0]
+            
+
         trait_dic["alignment_distance"] = np.max(self.alignment_distance[parents])
         trait_dic["cohesion_distance"] = np.max(self.cohesion_distance[parents])
         trait_dic["separation_distance"] = np.max(self.separation_distance[parents])
@@ -153,3 +159,6 @@ class Boids:
     
     def get_trait_names(self):
         return self.trait_names
+    
+    def get_trait_matrix(self):
+        return self.trait_matrix

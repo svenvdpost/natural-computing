@@ -37,6 +37,7 @@ class Prey(Boids.Boids):
         self.dodging_strength = np.random.normal(dodging_strength, self.coefficient_of_variation*dodging_strength, num_prey) # separation_strength 
         
         self.trait_names = super().get_trait_names() + ['dodging_distance', 'dodging_strength']
+        self.trait_matrix = super().get_trait_matrix() + [self.dodging_distance, self.dodging_strength]
 
     
     def step_pygame(self, predator_positions, predator_velocities):
@@ -76,9 +77,12 @@ class Prey(Boids.Boids):
     
     def crossover(self, parents):
         genes = super().crossover(parents)
+
+        for (trait_name, traits) in zip(self.trait_names, self.trait_matrix):
+            genes[trait_name] = np.random.choice(traits[parents], 1)[0]
         
-        genes["dodging_distance"] = np.max(self.dodging_distance[parents])
-        genes["dodging_strength"] = np.max(self.dodging_strength[parents], axis=0)
+        # genes["dodging_distance"] = np.max(self.dodging_distance[parents])
+        # genes["dodging_strength"] = np.max(self.dodging_strength[parents], axis=0)
 
         return genes
     

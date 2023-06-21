@@ -39,6 +39,8 @@ class Predators(Boids.Boids):
 
         self.trait_names = super().get_trait_names() + ['hunting_distance', 'hunting_strength', 'elimination_distance']
 
+        self.trait_matrix = super().get_trait_matrix() + [self.hunting_distance, self.hunting_strength, self.elimination_distance]
+
     
     def step_pygame(self, prey_positions, prey_velocities):
         predator_distances = self.get_distances(self.positions)
@@ -91,9 +93,12 @@ class Predators(Boids.Boids):
     def crossover(self, parents):
         genes = super().crossover(parents)
 
-        genes["hunting_distance"] = np.max(self.hunting_distance[parents])
-        genes["hunting_strength"] = np.max(self.hunting_strength[parents], axis=0)
-        genes["elimination_distance"] = np.max(self.elimination_distance[parents])
+        for (trait_name, traits) in zip(self.trait_names, self.trait_matrix):
+            genes[trait_name] = np.random.choice(traits[parents], 1)[0]
+
+        # genes["hunting_distance"] = np.max(self.hunting_distance[parents])
+        # genes["hunting_strength"] = np.max(self.hunting_strength[parents], axis=0)
+        # genes["elimination_distance"] = np.max(self.elimination_distance[parents])
 
         return genes
     
