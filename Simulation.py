@@ -176,7 +176,7 @@ class Simulation:
         return traits
     
     def update_trait_dict(self, boid_class, crossover_idx, traits):
-        mean_traits = boid_class.crossover(crossover_idx)
+        mean_traits = boid_class.crossover(crossover_idx, "mean")
         #print(f'mean_traits: {mean_traits}')
         for trait in boid_class.trait_names:
             traits[trait].append(mean_traits[trait])
@@ -253,9 +253,7 @@ class Simulation:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         exit = True
-
                
-
                 # let the prey do simulation step
                 prey_positions, prey_velocities = self.prey.step_pygame(predators_positions, predators_velocities)                            
                 # let the predators do a simulatino step
@@ -296,21 +294,20 @@ class Simulation:
                 # Stop simulation if all prey was hunted down or max steps reached
                 if len(elimination_order) >= self.num_prey or time_step >= self.max_time_steps:
 
-                    # update the generation timer
-                    generation += 1
-
                     # if one of the classes only has a population of 1 or less, stop the simulation
                     if self.num_prey <= 1 or self.num_predator <= 1:
                         print(f"extinction! num_prey={self.num_prey}, num_predator={self.num_predator}")
                         print(f'mean_prey_traits: {mean_prey_traits}')
                         input("Press Enter to quit...")
                         exit = True
+                        break
 
                     if generation >= max_generations:
                         print("max generations reached")
                         print(f'mean_prey_traits: {mean_prey_traits}')
                         input("Press Enter to quit...")
                         exit = True
+                        break
 
                     # Select the fittest parents
                     prey_crossover_idx, predator_crossover_idx = self.genetic.crossover_selection(elimination_order, predator_kill_counts, prey_survival_times, time_step)
@@ -322,8 +319,8 @@ class Simulation:
 
 
                     # create next generation of boids according
-                    self.predators = self.genetic.next_generation(predator_crossover_idx, self.predators, procreation="natural") #fixed
-                    self.prey = self.genetic.next_generation(prey_crossover_idx, self.prey, procreation="natural") #fixed
+                    self.predators = self.genetic.next_generation(predator_crossover_idx, self.predators, procreation="fixed", crossover_method="mean") #fixed
+                    self.prey = self.genetic.next_generation(prey_crossover_idx, self.prey, procreation="fixed", crossover_method="mean") #fixed
                     
                     self.num_predator = self.predators.num_boids
                     self.num_prey = self.prey.num_boids
@@ -339,11 +336,11 @@ class Simulation:
                     predator_kill_counts = np.zeros(self.predators.num_boids)
                     elimination_order = []
                     prey_survival_times = []
+                    
+                    # update the generation timer
+                    generation += 1
 
-                    # print generation info
-                    print(f"generation: {generation}")
-                    print(f"num_prey: {self.num_prey}")
-                    print(f"num_predator: {self.num_predator}")
+
 
                 time_step += 1
 
@@ -358,16 +355,18 @@ if __name__ == "__main__":
     height = 500 
     num_prey_crossover = 10
     num_predator_crossover = 4
-    max_time_steps = 100
+    max_time_steps = 1000
     max_generations = 50
     survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
     render_sim = False
 
     mutation_rate = 0.5
-    mutation_scale = 0.1
+    mutation_scale = 0.5
 
-    simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, True)
+
+
+    simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim)
 
     simulation.init_genetic(mutation_rate, mutation_scale)
 

@@ -37,7 +37,6 @@ class Prey(Boids.Boids):
         self.dodging_strength = np.random.normal(dodging_strength, self.coefficient_of_variation*dodging_strength, num_prey) # separation_strength 
         
         self.trait_names = super().get_trait_names() + ['dodging_distance', 'dodging_strength']
-        self.trait_matrix = super().get_trait_matrix() + [self.dodging_distance, self.dodging_strength]
 
     
     def step_pygame(self, predator_positions, predator_velocities):
@@ -75,14 +74,21 @@ class Prey(Boids.Boids):
                 dodging[i] = np.sum(positions_2[neighbors] - self.positions[i], axis=0)
         return - dodging
     
-    def crossover(self, parents):
-        genes = super().crossover(parents)
+    def crossover(self, parents, method):
+        genes = super().crossover(parents, method)
 
-        for (trait_name, traits) in zip(self.trait_names, self.trait_matrix):
-            genes[trait_name] = np.random.choice(traits[parents], 1)[0]
+        if method == "choice":
+            for trait_name in self.trait_names:
+                genes[trait_name] = np.random.choice(getattr(self, trait_name)[parents], 1)[0]
+
+        elif method == "max" or method == "mean":
+            if method == "max":
+                func = np.max
+            elif method == "mean":
+                func = np.mean
         
-        # genes["dodging_distance"] = np.max(self.dodging_distance[parents])
-        # genes["dodging_strength"] = np.max(self.dodging_strength[parents], axis=0)
+            genes["dodging_distance"] = func(self.dodging_distance[parents])
+            genes["dodging_strength"] = func(self.dodging_strength[parents], axis=0)
 
         return genes
     

@@ -39,8 +39,6 @@ class Predators(Boids.Boids):
 
         self.trait_names = super().get_trait_names() + ['hunting_distance', 'hunting_strength', 'elimination_distance']
 
-        self.trait_matrix = super().get_trait_matrix() + [self.hunting_distance, self.hunting_strength, self.elimination_distance]
-
     
     def step_pygame(self, prey_positions, prey_velocities):
         predator_distances = self.get_distances(self.positions)
@@ -90,15 +88,22 @@ class Predators(Boids.Boids):
         return list( dict.fromkeys(caught_prey_idx)), predator_kill_counts 
     
 
-    def crossover(self, parents):
-        genes = super().crossover(parents)
+    def crossover(self, parents, method):
+        genes = super().crossover(parents, method)
 
-        for (trait_name, traits) in zip(self.trait_names, self.trait_matrix):
-            genes[trait_name] = np.random.choice(traits[parents], 1)[0]
+        if method == "choice":
+            for trait_name in self.trait_names:
+                genes[trait_name] = np.random.choice(getattr(self, trait_name)[parents], 1)[0]
 
-        # genes["hunting_distance"] = np.max(self.hunting_distance[parents])
-        # genes["hunting_strength"] = np.max(self.hunting_strength[parents], axis=0)
-        # genes["elimination_distance"] = np.max(self.elimination_distance[parents])
+        elif method == "max" or method == "mean":
+            if method == "max":
+                func = np.max
+            elif method == "mean":
+                func = np.mean
+
+            genes["hunting_distance"] = func(self.hunting_distance[parents])
+            genes["hunting_strength"] = func(self.hunting_strength[parents], axis=0)
+            genes["elimination_distance"] = func(self.elimination_distance[parents])
 
         return genes
     

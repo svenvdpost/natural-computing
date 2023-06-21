@@ -52,11 +52,9 @@ class Boids:
 
         # for iterating over the traits
         self.trait_names = ['alignment_distance', 'cohesion_distance', 'separation_distance', 'alignment_strength', 'cohesion_strength', 'separation_strength', 'noise_strength', 'max_velocity']
-        self.trait_matrix = [self.alignment_distance, self.cohesion_distance, self.separation_distance, self.alignment_strength, self.cohesion_strength, self.separation_strength, self.noise_strength, self.max_velocity]
-
+    
         # Optimization        
-        #self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance), ("separation", self.separation_distance)], key=lambda x: x[1])
-
+        #self.distances = sorted([("alignment", self.alignment_distance), ("cohesion", self.cohesion_distance), ("separation", self.separation_distance)], key=lambda x: x[1])     
 
     def get_distances(self, positions_2):
         return np.sqrt(np.sum((self.positions[:, np.newaxis] - positions_2) ** 2, axis=2))
@@ -109,31 +107,36 @@ class Boids:
             self.step()
         return self.positions_over_time, self.velocities_over_time
 
-    def crossover(self, parents):
+    def crossover(self, parents, method):
         trait_dic = {}
 
-        # for (trait_name, traits) in zip(self.trait_names, self.trait_matrix):
-        #     trait_dic[trait_name] = np.random.choice(traits[parents], 1)[0]
-            
+        if method == "choice":
+            for trait_name in self.trait_names:
+                trait_dic[trait_name] = np.random.choice(getattr(self, trait_name)[parents], 1)[0]
 
-        trait_dic["alignment_distance"] = np.max(self.alignment_distance[parents])
-        trait_dic["cohesion_distance"] = np.max(self.cohesion_distance[parents])
-        trait_dic["separation_distance"] = np.max(self.separation_distance[parents])
-        trait_dic["alignment_strength"] = np.max(self.alignment_strength[parents], axis=0)
-        trait_dic["cohesion_strength"] = np.max(self.cohesion_strength[parents], axis=0)
-        trait_dic["separation_strength"] = np.max(self.separation_strength[parents], axis=0)
-        trait_dic["noise_strength"] = np.max(self.noise_strength[parents], axis=0)
-        trait_dic["max_velocity"] = np.max(self.max_velocity[parents])
+        elif method == "max" or method == "mean":
+            if method == "max":
+                func = np.max
+            elif method == "mean":
+                func = np.mean
+
+            trait_dic["alignment_distance"] = func(self.alignment_distance[parents])
+            trait_dic["cohesion_distance"] = func(self.cohesion_distance[parents])
+            trait_dic["separation_distance"] = func(self.separation_distance[parents])
+            trait_dic["alignment_strength"] = func(self.alignment_strength[parents], axis=0)
+            trait_dic["cohesion_strength"] = func(self.cohesion_strength[parents], axis=0)
+            trait_dic["separation_strength"] = func(self.separation_strength[parents], axis=0)
+            trait_dic["noise_strength"] = func(self.noise_strength[parents], axis=0)
+            trait_dic["max_velocity"] = func(self.max_velocity[parents])
 
         return trait_dic
     
     def mutate(self, child, scale):
         for trait, value in child.items():
             if isinstance(value, list):
-                for v in value:
-                    v = np.random.normal(v, scale)
+                child[trait] = list(map(lambda x: np.random.normal(x, abs(x*scale)), value))
             else:
-                value = np.random.normal(value, scale)
+                child[trait] = np.random.normal(value, abs(value*scale))
     
     def set_traits(self, trait_dic):
         self.alignment_distance = np.array(trait_dic["alignment_distance"])
@@ -160,5 +163,3 @@ class Boids:
     def get_trait_names(self):
         return self.trait_names
     
-    def get_trait_matrix(self):
-        return self.trait_matrix

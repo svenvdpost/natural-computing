@@ -14,6 +14,7 @@ class Genetic:
         self.simulation = simulation
         self.mutation_rate = mutation_rate
         self.mutation_scale = mutation_scale
+        self.crossover_method = None
 
     # mutate the stats of the boids proportional to the mutation_rate
     def mutation(self, child, boidclass : Boids.Boids):
@@ -23,7 +24,7 @@ class Genetic:
 
     # crossover the stats of the two parents
     def crossover(self, parents, boidclass : Boids.Boids):
-        return boidclass.crossover(parents)
+        return boidclass.crossover(parents, self.crossover_method)
     
     # create children from the two parents
     def make_children(self, parents, boidclass : Boids.Boids):
@@ -111,8 +112,10 @@ class Genetic:
         return children
 
     # create the next generation from the population
-    def next_generation(self, population, boidclass : Boids.Boids, procreation):
+    def next_generation(self, population, boidclass : Boids.Boids, procreation, crossover_method):
         children = []
+
+        self.crossover_method = crossover_method
 
         if procreation == "natural":
             children = self.natural_procreation(population, boidclass)
