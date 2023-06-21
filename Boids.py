@@ -198,18 +198,6 @@ class Boids:
         self.max_velocity = np.array(trait_dic["max_velocity"])
         '''
         
-
-    def show_boid(self, boid_id):
-        ad = self.alignment_distance[boid_id]
-        cd = self.cohesion_distance[boid_id]
-        sd = self.separation_distance[boid_id]
-        als = self.alignment_strength[boid_id]
-        cs = self.cohesion_strength[boid_id]
-        ss = self.separation_strength[boid_id]
-        ns = self.noise_strength[boid_id]
-        mv = self.max_velocity[boid_id]
-
-        return f"ad={ad}, cd={cd}, sd={sd}, als={als}, cs={cs}, ss={ss}, ns={ns}, mv={mv}"
     
     def get_trait_names(self):
         return self.trait_names

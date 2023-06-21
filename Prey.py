@@ -118,10 +118,3 @@ class Prey(Boids.Boids):
         self.dodging_distance = np.array(trait_dic["dodging_distance"])
         self.dodging_strength = np.array(trait_dic["dodging_strength"])
 
-    def show_boid(self, boid_id):
-        output = super().show_boid(boid_id)
-
-        dd = self.dodging_distance[boid_id]
-        ds = self.dodging_strength[boid_id]
-
-        return output + f",dd={dd}, ds={ds}"

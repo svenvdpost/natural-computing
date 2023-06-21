@@ -121,8 +121,8 @@ class Simulation:
 
 
     # ---- GENETIC ----
-    def init_genetic(self, mutation_rate, mutation_scale):
-        self.genetic = Genetic.Genetic(self, mutation_rate, mutation_scale)
+    def init_genetic(self, mutation_rate_prey, mutation_rate_predator, mutation_scale):
+        self.genetic = Genetic.Genetic(self, mutation_rate_prey, mutation_rate_predator, mutation_scale)
 
     # ---- RUNING THE SIMULATION -----
     def render_and_run(self, steps):
@@ -372,7 +372,8 @@ if __name__ == "__main__":
     kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
     render_sim_verbosity = 3 # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
 
-    mutation_rate = 0.1
+    mutation_rate_prey = 0.1
+    mutation_rate_predator = 0.5
     mutation_scale = 0.2
 
 
@@ -380,6 +381,6 @@ if __name__ == "__main__":
     #simulation.render_and_run(num_steps)   
     simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, environment, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim_verbosity)
 
-    simulation.init_genetic(mutation_rate, mutation_scale)
+    simulation.init_genetic(mutation_rate_prey, mutation_rate_predator, mutation_scale)
 
     simulation.run_forever()

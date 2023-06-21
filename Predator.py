@@ -130,11 +130,3 @@ class Predators(Boids.Boids):
         self.hunting_strength = np.array(trait_dic["hunting_strength"])
         self.elimination_distance = np.array(trait_dic["elimination_distance"])
 
-    def show_boid(self, boid_id):
-        output = super().show_boid(boid_id)
-
-        hd = self.hunting_distance[boid_id]
-        hs = self.hunting_strength[boid_id]
-        ed = self.elimination_distance[boid_id]
-
-        return output + f",hd={hd}, cd={hs}, ed={ed}"

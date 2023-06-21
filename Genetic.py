@@ -10,15 +10,19 @@ import copy
 
 class Genetic:
 
-    def __init__(self, simulation : Simulation.Simulation, mutation_rate, mutation_scale) -> None:
+    def __init__(self, simulation : Simulation.Simulation, mutation_rate_prey, mutation_rate_predator, mutation_scale) -> None:
         self.simulation = simulation
-        self.mutation_rate = mutation_rate
+        self.mutation_rate_prey = mutation_rate_prey
+        self.mutation_rate_predator = mutation_rate_predator
         self.mutation_scale = mutation_scale
         self.crossover_method = None
 
     # mutate the stats of the boids proportional to the mutation_rate
     def mutation(self, child, boidclass : Boids.Boids):
-        mutate = np.random.choice([True,False], p=[self.mutation_rate, 1-self.mutation_rate])
+
+        rate = self.mutation_rate_prey if isinstance(boidclass, Prey.Prey) else self.mutation_rate_predator
+
+        mutate = np.random.choice([True,False], p=[rate, 1-rate])
         if mutate:
             boidclass.mutate(child, self.mutation_scale)
 
