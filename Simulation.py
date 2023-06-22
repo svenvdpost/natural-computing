@@ -419,10 +419,10 @@ if __name__ == "__main__":
     simulation = Simulation(simulation_param, prey_attributes, predator_attributes)
 
     # Define the evolutionary/genetic parameter
-    mutation_rate = 0.1
-    mutation_scale_prey = 0.2
-    mutation_scale_predator = 0.4
-    simulation.init_genetic(mutation_rate, mutation_scale_prey, mutation_scale_predator)
+    mutation_rate_prey = 0.1
+    mutation_rate_predator = 0.2
+    mutation_scale = 0.4
+    simulation.init_genetic(mutation_rate_prey, mutation_rate_predator, mutation_scale)
 
     # Run simulation
     simulation.run_forever()
