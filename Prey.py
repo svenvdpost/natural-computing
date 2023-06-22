@@ -30,10 +30,11 @@ class Prey(Boids.Boids):
             if key  in prey_specific_attributes:
                 if value == 0:
                     standard_deviation = scale
+                    attribute = scale - np.random.normal(value, standard_deviation, num_boids)                
                 else:
                     standard_deviation = coefficient_of_variation * value
-                    
-                attribute = np.random.normal(value, standard_deviation, num_boids)
+                    attribute = np.random.normal(value, standard_deviation, num_boids)
+
                 setattr(self, key, attribute)
 
         #self.dodging_distance  = np.random.normal(attributes["dodging_distance"], coefficient_of_variation * attributes["dodging_distance"], num_boids) #  separation_distance 

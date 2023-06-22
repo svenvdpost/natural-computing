@@ -19,7 +19,7 @@ class Predators(Boids.Boids):
 
         self.attributes = attributes
         coefficient_of_variation = attributes["coefficient_of_variation"]
-        self.num_boids =num_boids
+        self.num_boids = num_boids
         scale = attributes["scale"]
 
         predator_specific_attributes = ["hunting_strength", "hunting_distance", "elimination_distance"]
@@ -28,10 +28,11 @@ class Predators(Boids.Boids):
             if key  in predator_specific_attributes:
                 if value == 0:
                     standard_deviation = scale
+                    attribute = scale - np.random.normal(value, standard_deviation, num_boids)
                 else:
                     standard_deviation = coefficient_of_variation * value
-                    
-                attribute = np.random.normal(value, standard_deviation, num_boids)
+                    attribute = np.random.normal(value, standard_deviation, num_boids)
+
                 setattr(self, key, attribute)
         #self.trait_names = super().get_trait_names() + ['hunting_distance', 'hunting_strength', 'elimination_distance']
 

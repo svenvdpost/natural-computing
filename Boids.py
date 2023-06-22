@@ -31,10 +31,12 @@ class Boids:
             if key not in ["coefficient_of_variation", "scale"]:
                 if value == 0:
                     standard_deviation = scale
+                    attribute = scale - np.random.normal(value, standard_deviation, num_boids)
                 else:
                     standard_deviation = coefficient_of_variation * value
+                    attribute = np.random.normal(value, standard_deviation, num_boids)
                     
-                attribute = np.random.normal(value, standard_deviation, num_boids)
+                #attribute = np.random.normal(value, standard_deviation, num_boids)
                 setattr(self, key, attribute)
                 
                 # Process the key-value pair here
