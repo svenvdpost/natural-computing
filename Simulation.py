@@ -6,6 +6,7 @@ from matplotlib.pyplot import cm
 import matplotlib.ticker as mtick
 import os
 import random
+from pygame_screen_recorder import pygame_screen_recorder as pgr
 
 import Prey
 import Predator
@@ -31,6 +32,7 @@ class Simulation:
         self.prey_selection_weight =        simulation_param["prey_selection_weight"]
         self.predator_selection_weight =    simulation_param["predator_selection_weight"]
         self.results_dir =                  simulation_param["results_dir"]
+        self.record_generations =           simulation_param["record_generations"]
 
         self.prey_attributes = prey_attributes
         self.prey =         self.init_prey()  
@@ -58,7 +60,6 @@ class Simulation:
         return boids
 
     def draw_prey(self, positions, velocities):
-        shape = pygame.Surface([20,20])
 
         for pos, vel in zip(positions, velocities):
             pygame.draw.circle(self.canvas, (255,0,0), pos, 3)
@@ -88,7 +89,10 @@ class Simulation:
             canvas = pygame.display.set_mode((self.width, self.height))
             pygame.display.set_caption("Boid simulation")
 
-            pygame.font.init()     
+            pygame.font.init()
+
+            self.recrdr_first = pgr(self.results_dir + "first_gen.gif") # init recorder object  
+            self.recrdr_last = pgr(self.results_dir + "last_gen.gif") # init recorder object
 
             return canvas
 
@@ -281,6 +285,12 @@ class Simulation:
                     self.canvas.blit(text_surface, (0,60))
 
                     pygame.display.update()
+
+                    if generation == 0 and self.record_generations:
+                        self.recrdr_first.click(self.canvas)
+                    if generation == self.max_generations-1 and self.record_generations:
+                        self.recrdr_last.click(self.canvas)
+
                     time.sleep(0.01)
 
 
@@ -336,6 +346,12 @@ class Simulation:
                     # print generation info
                     print(f"Generation: {generation} / {self.max_generations}   Event: {event}   Number prey: {self.num_prey}   Number predators: {self.num_predator}")
 
+                    # save first generation video
+                    if generation == 0 and self.record_generations:
+                        self.recrdr_first.save()
+                    if generation == self.max_generations-1 and self.record_generations:
+                        self.recrdr_last.save()
+
                     # update the generation timer
                     generation += 1
 
@@ -360,7 +376,8 @@ if __name__ == "__main__":
         "num_predator_crossover" :      4,
         "prey_selection_weight" :       2, #... better name, the higher the more weight on survival times 
         "predator_selection_weight" :   2, # ... better name, the higher the more weight on survival times
-        "results_dir" :                 os.path.join(os.path.dirname(__file__), 'Results/')
+        "results_dir" :                 os.path.join(os.path.dirname(__file__), 'Results/'),
+        "record_generations":           True
     }
 
     prey_attributes = {
@@ -403,8 +420,9 @@ if __name__ == "__main__":
 
     # Define the evolutionary/genetic parameter
     mutation_rate = 0.1
-    mutation_scale = 0.2
-    simulation.init_genetic(mutation_rate, mutation_scale)
+    mutation_scale_prey = 0.2
+    mutation_scale_predator = 0.4
+    simulation.init_genetic(mutation_rate, mutation_scale_prey, mutation_scale_predator)
 
     # Run simulation
     simulation.run_forever()
