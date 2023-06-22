@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 import matplotlib.ticker as mtick
-import time
+import os
 import random
 
 import Prey
@@ -15,30 +15,34 @@ class Simulation:
 
 
 
-    def __init__(self, num_prey, num_predator, coefficient_of_variation, width, height, environment, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim_verbosity) -> None:
+    def __init__(self, simulation_param, prey_attributes, predator_attributes) -> None:
 
-        self.num_prey = num_prey
-        self.num_predator = num_predator
-        self.coefficient_of_variation = coefficient_of_variation
-        self.width = width
-        self.height = height
-        self.environment = environment
+        self.num_trials =                   simulation_param["num_trials"] 
+        self.max_generations =              simulation_param["max_generations"]
+        self.max_time_steps =               simulation_param["max_time_steps"]  
+        self.render_sim_verbosity =         simulation_param["render_sim_verbosity"]
+        self.environment =                  simulation_param["environment"]
+        self.width =                        simulation_param["width"]
+        self.height =                       simulation_param["height"]
+        self.num_prey =                     simulation_param["num_prey"]
+        self.num_predator =                 simulation_param["num_predator"]
+        self.num_prey_crossover =           simulation_param["num_prey_crossover"]
+        self.num_predator_crossover =       simulation_param["num_predator_crossover"]
+        self.prey_selection_weight =        simulation_param["prey_selection_weight"]
+        self.predator_selection_weight =    simulation_param["predator_selection_weight"]
+        self.results_dir =                  simulation_param["results_dir"]
 
-        self.num_prey_crossover = num_prey_crossover
-        self.num_predator_crossover = num_predator_crossover
-        self.max_time_steps = max_time_steps
-        self.max_generations = max_generations
-        self.survival_time_scaling_factor = survival_time_scaling_factor
-        self.kill_counts_scaling_factor = kill_counts_scaling_factor
+        self.prey_attributes = prey_attributes
+        self.prey =         self.init_prey()  
 
-        self.render_sim_verbosity = render_sim_verbosity
+        self.predator_attributes = predator_attributes      
+        self.predators =    self.init_predators()
 
-        self.prey = self.init_prey()        
-        self.predators = self.init_predators()
-        self.canvas = self.init_pygame()
-        self.font = pygame.font.SysFont('arial', 15)
+        self.canvas =       self.init_pygame()
+        self.font =         pygame.font.SysFont('arial', 15)
 
         self.genetic = None
+
         self.fig, self.axs = plt.subplots(3, figsize=(8, 12), gridspec_kw={'height_ratios': [1, 3, 3]})
         self.traits = []
 
@@ -46,24 +50,10 @@ class Simulation:
     # ---- PREY ------
     def init_prey(self):
         # Define model parameters
-        num_prey = self.num_prey
-        coefficient_of_variation = self.coefficient_of_variation
-        avoid_border_distance = 50
-        avoid_border_strength = 0.4
-        alignment_distance = 50
-        cohesion_distance = 100
-        separation_distance = 25 #25
-        dodging_distance = 100
-        alignment_strength = 0.1
-        cohesion_strength = 0.001
-        separation_strength = 0.05
-        dodging_strength = 0.1
-        noise_strength = 0.1
-        max_velocity = 5    
 
+   
         # Create Boids object
-        boids = Prey.Prey(num_prey, coefficient_of_variation, width, height, environment, avoid_border_distance, avoid_border_strength, alignment_distance, cohesion_distance, separation_distance, dodging_distance,
-                            alignment_strength, cohesion_strength, separation_strength, dodging_strength, noise_strength,  max_velocity) # vision_distance,
+        boids = Prey.Prey(self.num_prey, self.prey_attributes, self.environment, self.width, self.height) 
         
         return boids
 
@@ -77,26 +67,9 @@ class Simulation:
     # ---- PREDATORS ------
     def init_predators(self):
         # Define model parameters
-        num_predator = self.num_predator
-        #num_prey = self.num_prey
-        coefficient_of_variation = self.coefficient_of_variation
-        avoid_border_distance = 50
-        avoid_border_strength = 0.4
-        alignment_distance = 50
-        cohesion_distance = 100
-        separation_distance = 25
-        hunting_distance = 100
-        elimination_distance = 10
-        alignment_strength = 0.1
-        cohesion_strength = 0.001
-        separation_strength = 0.05
-        hunting_strength = 0.5 
-        noise_strength = 0.1
-        max_velocity = 6   
 
         # Create Predator object
-        boids = Predator.Predators(num_predator, coefficient_of_variation, width, height, environment, avoid_border_distance, avoid_border_strength,alignment_distance, cohesion_distance, separation_distance, hunting_distance, elimination_distance,
-                                   alignment_strength, cohesion_strength, separation_strength, hunting_strength, noise_strength, max_velocity) #vision_distance, dodging_strength,
+        boids = Predator.Predators(self.num_predator, self.predator_attributes, self.environment, self.width, self.height)
         
         return boids
 
@@ -150,19 +123,21 @@ class Simulation:
                 pygame.display.update()
 
                 time.sleep(0.05)
-  
-    
+
+
     def create_trait_dict(self,boid_class):
         traits = dict()
-        for trait in boid_class.trait_names:
-            traits[trait] = [np.mean(getattr(boid_class, trait))]
+        for key, _ in boid_class.attributes.items(): #, value
+            if key not in ["coefficient_of_variation"]:
+                traits[key] = [np.mean(getattr(boid_class, key))]
         return traits
     
     def update_trait_dict(self, boid_class, crossover_idx, traits):
         mean_traits = boid_class.crossover(crossover_idx, "mean")
         #print(f'mean_traits: {mean_traits}')
-        for trait in boid_class.trait_names:
-            traits[trait].append(mean_traits[trait])
+        for key, _ in boid_class.attributes.items(): #, value
+            if key not in ["coefficient_of_variation"]:
+                traits[key].append(mean_traits[key])
 
         return traits
 
@@ -230,6 +205,16 @@ class Simulation:
         plt.tight_layout()
         plt.pause(0.01)
     
+    def finalize_generation(self, event_message ,normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits): 
+        self.plot_evolution_of_traits(normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits)                       
+        if not os.path.isdir(self.results_dir):
+            os.makedirs(self.results_dir) 
+        file_name = 'trial_n_trait_evolution'
+        self.fig.savefig(self.results_dir + file_name)  
+        print(event_message)
+        input("Press Enter to quit...")
+
+
     
     def run_forever(self):
 
@@ -259,7 +244,7 @@ class Simulation:
                     if event.type == pygame.QUIT:
                         exit = True
                 # let the prey do simulation step
-                prey_positions, prey_velocities = self.prey.step_pygame(predators_positions, predators_velocities) 
+                prey_positions, prey_velocities = self.prey.step_pygame(predators_positions) 
 
                 # let the predators do a simulatino step
                 predators_positions, predators_velocities, eliminated_prey, predator_kills = self.predators.step_pygame(prey_positions, prey_velocities)   # prey_positions, prey_velocities   
@@ -316,15 +301,17 @@ class Simulation:
 
                     # if one of the classes only has a population of 1 or less, stop the simulation
                     if self.num_prey <= 1 or self.num_predator <= 1:
-                        self.plot_evolution_of_traits(normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits)
-                        print(f"extinction! num_prey={self.num_prey}, num_predator={self.num_predator}")
-                        input("Press Enter to quit...")
+                        event_message = "extinction! num_prey = " + self.num_prey + "num_predator = " + self.num_predator
+                        self.finalize_generation(self, event_message,normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits) 
+
+
                         exit = True
                         break
                     elif generation >= self.max_generations:
-                        self.plot_evolution_of_traits(normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits)
-                        print("max generations reached")
-                        input("Press Enter to quit...")
+                        event_message = "max generations reached"
+                        self.finalize_generation(event_message,normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits) 
+
+                        
                         exit = True
                         break
                     else: 
@@ -358,28 +345,66 @@ class Simulation:
 if __name__ == "__main__":
 
     # Define the simulation parameters
-    num_prey = 50
-    num_predator = 4
-    coefficient_of_variation = 0.4
-    width = 1200
-    height = 1000 
-    environment = 'hard_borders' #hard_borders / wrapped_borders
-    num_prey_crossover = 10
-    num_predator_crossover = 4
-    max_time_steps = 1000
-    max_generations = 50
-    survival_time_scaling_factor = 2 #... better name, the higher the more weight on survival times 
-    kill_counts_scaling_factor = 2 # ... better name, the higher the more weight on survival times  
-    render_sim_verbosity = 3 # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
+    simulation_param = {
 
+        "num_trials" :                  1,
+        "max_generations" :             5,
+        "max_time_steps" :              100,
+        "render_sim_verbosity" :        3, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
+        "environment" :                 "hard_borders", #hard_borders / wrapped_borders
+        "width" :                       1200,
+        "height" :                      1000,
+        "num_prey" :                    50,
+        "num_predator" :                4,
+        "num_prey_crossover" :          10,
+        "num_predator_crossover" :      4,
+        "prey_selection_weight" :       2, #... better name, the higher the more weight on survival times 
+        "predator_selection_weight" :   2, # ... better name, the higher the more weight on survival times
+        "results_dir" :                 os.path.join(os.path.dirname(__file__), 'Results/')
+    }
+
+    prey_attributes = {
+        #"num_boids": simulation_param["num_prey"],
+        "coefficient_of_variation": 0.4,
+        "avoid_border_distance": 50,
+        "avoid_border_strength": 0.4,
+        "alignment_distance": 50,
+        "cohesion_distance": 100,
+        "separation_distance": 25,
+        "dodging_distance": 100,
+        "alignment_strength": 0.1,
+        "cohesion_strength": 0.001,
+        "separation_strength": 0.05,
+        "dodging_strength": 0.1,
+        "noise_strength": 0.1,
+        "max_velocity": 5
+    }
+
+    predator_attributes = {
+        #"num_boids": simulation_param["num_predator"],
+        "coefficient_of_variation": 0.4,
+        "avoid_border_distance": 50,
+        "avoid_border_strength": 0.4,
+        "alignment_distance": 50,
+        "cohesion_distance": 100,
+        "separation_distance": 25,
+        "hunting_distance": 100,
+        "elimination_distance": 10,
+        "alignment_strength": 0.1,
+        "cohesion_strength": 0.001,
+        "separation_strength": 0.05,
+        "hunting_strength": 0.5,
+        "noise_strength": 0.1,
+        "max_velocity": 6
+    }
+
+    # Initialize simulation
+    simulation = Simulation(simulation_param, prey_attributes, predator_attributes)
+
+    # Define the evolutionary/genetic parameter
     mutation_rate = 0.1
     mutation_scale = 0.2
-
-
-
-    #simulation.render_and_run(num_steps)   
-    simulation = Simulation(num_prey, num_predator, coefficient_of_variation, width, height, environment, num_prey_crossover, num_predator_crossover, max_time_steps, max_generations, survival_time_scaling_factor, kill_counts_scaling_factor, render_sim_verbosity)
-
     simulation.init_genetic(mutation_rate, mutation_scale)
 
+    # Run simulation
     simulation.run_forever()

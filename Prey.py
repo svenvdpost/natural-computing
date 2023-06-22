@@ -3,49 +3,33 @@ import numpy as np
 import Boids
 
 class Prey(Boids.Boids):
-    def __init__(self, 
-                 num_prey,
-                 coefficient_of_variation,
-                 width, 
-                 height, 
+    def __init__(self,
+                 num_boids,
+                 attributes,
                  environment,
-                 avoid_border_distance,
-                 avoid_border_strength,
-                 alignment_distance, 
-                 cohesion_distance, 
-                 separation_distance, 
-                 dodging_distance,
-                 alignment_strength, 
-                 cohesion_strength, 
-                 separation_strength, 
-                 dodging_strength,
-                 noise_strength,
-                 max_velocity):
-        super().__init__(num_prey,
-                        coefficient_of_variation,
-                        width, 
-                        height, 
-                        environment,
-                        avoid_border_distance,
-                        avoid_border_strength,
-                        alignment_distance, 
-                        cohesion_distance, 
-                        separation_distance, 
-                        alignment_strength, 
-                        cohesion_strength, 
-                        separation_strength, 
-                        noise_strength,
-                        max_velocity)
+                 width,
+                 height,
+                 ):
+        super().__init__(num_boids,
+                         attributes,
+                         environment,
+                         width,
+                         height)
         
         #TODO implement traits
-        self.coefficient_of_variation = coefficient_of_variation
-        self.dodging_distance  = np.random.normal(dodging_distance, self.coefficient_of_variation*dodging_distance, num_prey) #  separation_distance 
-        self.dodging_strength = np.random.normal(dodging_strength, self.coefficient_of_variation*dodging_strength, num_prey) # separation_strength 
+
+        # (self.prey_attributes, self.environment, self.width, self.height)
+        self.num_boids = num_boids 
+        self.attributes = attributes
+        coefficient_of_variation = attributes["coefficient_of_variation"]
+
+        self.dodging_distance  = np.random.normal(attributes["dodging_distance"], coefficient_of_variation * attributes["dodging_distance"], num_boids) #  separation_distance 
+        self.dodging_strength = np.random.normal(attributes["dodging_strength"], coefficient_of_variation * attributes["dodging_strength"], num_boids) # separation_strength 
         
-        self.trait_names = super().get_trait_names() + ['dodging_distance', 'dodging_strength']
+        #self.trait_names = super().get_trait_names() + ['dodging_distance', 'dodging_strength']
 
     
-    def step_pygame(self, predator_positions, predator_velocities):
+    def step_pygame(self, predator_positions):
 
         self.num_predator = len(predator_positions)
 

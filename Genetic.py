@@ -51,7 +51,7 @@ class Genetic:
         sim = self.simulation # easier readability
 
         # Predator crossover selection (select the predators that eliminated most boids)
-        predator_selection_weights = predator_kill_counts**sim.kill_counts_scaling_factor
+        predator_selection_weights = predator_kill_counts**sim.predator_selection_weight
         predator_selection_weights = np.where(predator_selection_weights == 0, 0.01, predator_selection_weights)
         predator_selection_probabilities = predator_selection_weights / np.sum( predator_selection_weights)
 
@@ -61,7 +61,7 @@ class Genetic:
         
         
         # Prey crossover selection
-        prey_selection_weights = list(np.array(prey_survival_times)**sim.survival_time_scaling_factor)
+        prey_selection_weights = list(np.array(prey_survival_times)**sim.prey_selection_weight)
         prey_selection_probabilities =  prey_selection_weights / np.sum( prey_selection_weights)
 
         size = min(sim.num_prey_crossover, sim.num_prey)
@@ -132,7 +132,8 @@ class Genetic:
                 except:
                     traits_dic[trait] = [value]
 
-        next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height, boidclass.environment] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later
+        #next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height, boidclass.environment] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later
+        next_generation_boidclass =  boidclass.__class__(*[len(children), boidclass.attributes, boidclass.environment, boidclass.width, boidclass.height] ) # innit dummy class to overwrite later
         next_generation_boidclass.set_traits(traits_dic)
 
         return next_generation_boidclass

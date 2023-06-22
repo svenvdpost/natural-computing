@@ -4,46 +4,28 @@ import Boids
 
 class Predators(Boids.Boids):
     def __init__(self, 
-                 num_predator, 
-                 coefficient_of_variation,
-                 width, 
-                 height, 
+                 num_boids,
+                 attributes,
                  environment,
-                 avoid_border_distance,
-                 avoid_border_strength,
-                 alignment_distance, 
-                 cohesion_distance, 
-                 separation_distance,
-                 hunting_distance, 
-                 elimination_distance,
-                 alignment_strength, 
-                 cohesion_strength, 
-                 separation_strength,
-                 hunting_strength, 
-                 noise_strength,
-                 max_velocity):
-        super().__init__(num_predator, 
-                        coefficient_of_variation,
-                        width, 
-                        height, 
-                        environment,
-                        avoid_border_distance,
-                        avoid_border_strength,
-                        alignment_distance, 
-                        cohesion_distance, 
-                        separation_distance,
-                        alignment_strength, 
-                        cohesion_strength, 
-                        separation_strength,
-                        noise_strength,
-                        max_velocity)
-    
-        self.hunting_distance  = np.random.normal(hunting_distance, self.coefficient_of_variation*hunting_distance, num_predator) #  separation_distance num_predator
-        self.hunting_strength = np.random.normal(hunting_strength, self.coefficient_of_variation*hunting_strength, num_predator) # separation_strength num_prey
-        self.num_predator = num_predator
-        self.elimination_distance = np.random.normal(elimination_distance, self.coefficient_of_variation*elimination_distance, num_predator) #  separation_distance num_predator
+                 width,
+                 height
+                 ):
+        super().__init__(num_boids,
+                         attributes,
+                         environment,
+                         width,
+                         height
+                         )
 
-        self.trait_names = super().get_trait_names() + ['hunting_distance', 'hunting_strength', 'elimination_distance']
+        self.attributes = attributes
+        coefficient_of_variation = attributes["coefficient_of_variation"]
+        self.num_boids =num_boids
+
+        self.hunting_distance  = np.random.normal(attributes["hunting_distance"], coefficient_of_variation * attributes["hunting_distance"], num_boids) #  separation_distance num_boids
+        self.hunting_strength = np.random.normal(attributes["hunting_strength"] , coefficient_of_variation * attributes["hunting_strength"], num_boids) # separation_strength num_prey
+        self.elimination_distance = np.random.normal(attributes["elimination_distance"], coefficient_of_variation * attributes["elimination_distance"], num_boids) #  separation_distance num_boids
+
+        #self.trait_names = super().get_trait_names() + ['hunting_distance', 'hunting_strength', 'elimination_distance']
 
     
     def step_pygame(self, prey_positions, prey_velocities):
@@ -91,7 +73,7 @@ class Predators(Boids.Boids):
 
 
     def elimination(self, distances):
-        predator_kill_counts = np.zeros(self.num_predator)
+        predator_kill_counts = np.zeros(self.num_boids)
         caught_prey_idx = []
         for i in range(len(self.positions)):
             caught_prey = self.get_close_boids(self.elimination_distance[i], distances[i])

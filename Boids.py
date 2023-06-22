@@ -4,46 +4,49 @@ import numpy as np
 class Boids:
     def __init__(self, 
                  num_boids,
-                 coefficient_of_variation, 
-                 width, 
-                 height, 
+                 attributes,
                  environment,
-                 avoid_border_distance,
-                 avoid_border_strength,
-                 alignment_distance, 
-                 cohesion_distance, 
-                 separation_distance, 
-                 alignment_strength, 
-                 cohesion_strength, 
-                 separation_strength,
-                 noise_strength,
-                 max_velocity #Trait for predator and prey TODO: implement this as trait
+                 width,
+                 height 
                  ):
       
-        self.num_boids = num_boids
+        #num_boids = attributes["num_boids"]
+        # self.attributes = attributes
         self.positions = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))        
         self.velocities = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))
-        self.coefficient_of_variation = coefficient_of_variation
+        coefficient_of_variation = attributes["coefficient_of_variation"]
+        self.environment = environment
         self.width = width
         self.height = height
-        self.environment = environment
         
-        self.trait_names = ['avoid_border_distance', 'avoid_border_strength', 'alignment_distance', 'cohesion_distance', 'separation_distance', 'alignment_strength', 'cohesion_strength', 'separation_strength', 'noise_strength', 'max_velocity']
+        
+        #self.trait_names = ['avoid_border_distance', 'avoid_border_strength', 'alignment_distance', 'cohesion_distance', 'separation_distance', 'alignment_strength', 'cohesion_strength', 'separation_strength', 'noise_strength', 'max_velocity']
 
 
         # TODO suggestion: instead of drawing different samples for the x and y strenght, make them the same. Maybe not necessary however.
         #coefficient_of_variation = 0.001
 
-        self.alignment_distance = np.random.normal(alignment_distance, self.coefficient_of_variation*alignment_distance, num_boids) # alignment_distance 
-        self.cohesion_distance = np.random.normal(cohesion_distance, self.coefficient_of_variation*cohesion_distance, num_boids) # cohesion_distance 
-        self.separation_distance = np.random.normal(separation_distance, self.coefficient_of_variation*separation_distance, num_boids) #  separation_distance 
-        self.alignment_strength = np.random.normal(alignment_strength, self.coefficient_of_variation*alignment_strength, num_boids) # alignment_strength 
-        self.cohesion_strength = np.random.normal(cohesion_strength, self.coefficient_of_variation*cohesion_strength, num_boids) # cohesion_strength 
-        self.separation_strength = np.random.normal(separation_strength, self.coefficient_of_variation*separation_strength, num_boids) # separation_strength 
-        self.noise_strength = np.random.normal(noise_strength, self.coefficient_of_variation*noise_strength, num_boids) # noise_strength 
+        for key, value in attributes.items():
+            if key not in ["coefficient_of_variation"]:
+                attribute = np.random.normal(value, coefficient_of_variation * value, num_boids)
+                setattr(self, key, attribute)
+                
+                # Process the key-value pair here
 
-        self.avoid_border_distance = np.random.normal(avoid_border_distance, self.coefficient_of_variation*avoid_border_distance, num_boids) 
-        self.avoid_border_strength = np.random.normal(avoid_border_strength, self.coefficient_of_variation*avoid_border_strength, num_boids) 
+                #print(key, value)
+
+        """
+        self.alignment_distance = np.random.normal(attributes["alignment_distance"],    coefficient_of_variation * attributes["alignment_distance"],    num_boids) # alignment_distance 
+        self.cohesion_distance = np.random.normal(attributes["cohesion_distance"],      coefficient_of_variation * attributes["cohesion_distance"],     num_boids) # cohesion_distance 
+        self.separation_distance = np.random.normal(attributes["separation_distance"],  coefficient_of_variation * attributes["separation_distance"],   num_boids) #  separation_distance 
+        self.alignment_strength = np.random.normal(attributes["alignment_strength"],    coefficient_of_variation * attributes["alignment_strength"],    num_boids) # alignment_strength 
+        self.cohesion_strength = np.random.normal(attributes["cohesion_strength"],      coefficient_of_variation * attributes["cohesion_strength"],     num_boids) # cohesion_strength 
+        self.separation_strength = np.random.normal(attributes["separation_strength"],  coefficient_of_variation * attributes["separation_strength"],   num_boids) # separation_strength 
+        self.noise_strength = np.random.normal(attributes["noise_strength"],            coefficient_of_variation * attributes["noise_strength"],        num_boids) # noise_strength 
+        self.avoid_border_distance = np.random.normal(attributes["avoid_border_distance"], coefficient_of_variation *avoid_border_distance, num_boids) 
+        self.avoid_border_strength = np.random.normal(attributes["avoid_border_strength"], coefficient_of_variation *avoid_border_strength, num_boids) 
+        """
+        
 
         #self.trait_names = self.trait_names + ['avoid_border_distance', 'avoid_border_strength']
             
@@ -58,7 +61,7 @@ class Boids:
         '''
     
 
-        self.max_velocity = np.random.normal(max_velocity, coefficient_of_variation, num_boids) # max_velocity
+        #self.max_velocity = np.random.normal(max_velocity, coefficient_of_variation, num_boids) # max_velocity
 
         self.positions_over_time = [self.positions]
         self.velocities_over_time = [self.velocities]
@@ -162,7 +165,14 @@ class Boids:
             elif method == "mean":
                 func = np.mean
 
-            trait_dic["avoid_border_distance"] = func(self.avoid_border_distance[parents])
+            for key, _ in self.attributes.items(): #, value
+                if key not in ["coefficient_of_variation"]:
+                    trait = getattr(self, key)
+                    trait_dic[key] = func(trait[parents])
+                    #setattr(self, key, np.array(trait_dic[key]))
+
+            '''
+                        trait_dic["avoid_border_distance"] = func(self.avoid_border_distance[parents])
             trait_dic["alignment_distance"] = func(self.alignment_distance[parents])
             trait_dic["cohesion_distance"] = func(self.cohesion_distance[parents])
             trait_dic["separation_distance"] = func(self.separation_distance[parents])
@@ -172,6 +182,9 @@ class Boids:
             trait_dic["separation_strength"] = func(self.separation_strength[parents], axis=0)
             trait_dic["noise_strength"] = func(self.noise_strength[parents], axis=0)
             trait_dic["max_velocity"] = func(self.max_velocity[parents])
+            
+            '''
+
 
         return trait_dic
     
@@ -183,8 +196,9 @@ class Boids:
                 child[trait] = np.random.normal(value, abs(value*scale))
     
     def set_traits(self, trait_dic):
-        for trait_name in self.trait_names:
-            setattr(self, trait_name, np.array(trait_dic[trait_name]))
+        for key, _ in self.attributes.items(): #, value
+            if key not in ["coefficient_of_variation"]:
+                setattr(self, key, np.array(trait_dic[key]))
 
 
         '''
