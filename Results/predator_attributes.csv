@@ -1,0 +1,2 @@
+,coefficient_of_variation,scale,avoid_border_distance,alignment_distance,cohesion_distance,separation_distance,hunting_distance,elimination_distance,avoid_border_strength,alignment_strength,cohesion_strength,separation_strength,hunting_strength,noise_strength,max_velocity
+0,0.4,0.01,50,50,50,50,50,10,0.4,0,0,0,0.1,0.1,5
