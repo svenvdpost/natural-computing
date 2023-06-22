@@ -109,8 +109,8 @@ class Simulation:
 
 
     # ---- GENETIC ----
-    def init_genetic(self, mutation_rate, mutation_scale):
-        self.genetic = Genetic.Genetic(self, mutation_rate, mutation_scale)
+    def init_genetic(self, genetic_param):
+        self.genetic = Genetic.Genetic(self, genetic_param["prey_mutation_rate"], genetic_param["predator_mutation_rate"], genetic_param["mutation_scale"])
 
     # ---- RUNING THE SIMULATION -----
     def render_and_run(self, steps):
@@ -529,8 +529,9 @@ if __name__ == "__main__":
 
     # Define the evolutionary/genetic parameter
     genetic_param = {
-        "mutation_rate" : 0.1,
-        "mutation_scale" : 0.2
+        "prey_mutation_rate" : 0.1,
+        "predator_mutation_rate": 0.2,
+        "mutation_scale" : 0.4
     }
 
     # Store all the parameter in a CSV
@@ -551,9 +552,9 @@ if __name__ == "__main__":
     simulation = Simulation(simulation_param, prey_attributes, predator_attributes)
 
     # Define the evolutionary/genetic parameter
-    mutation_rate = 0.1
-    mutation_scale = 0.2
-    simulation.init_genetic(mutation_rate, mutation_scale)
+    #mutation_rate = 0.1
+    #mutation_scale = 0.2
+    simulation.init_genetic(genetic_param)
 
     # Run simulation
     simulation.run_forever()
