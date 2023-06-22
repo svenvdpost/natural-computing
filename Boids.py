@@ -15,6 +15,7 @@ class Boids:
         self.positions = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))        
         self.velocities = np.random.uniform(low=[0,0], high=[width, height], size=(num_boids, 2))
         coefficient_of_variation = attributes["coefficient_of_variation"]
+        scale = attributes["scale"]
         self.environment = environment
         self.width = width
         self.height = height
@@ -27,8 +28,13 @@ class Boids:
         #coefficient_of_variation = 0.001
 
         for key, value in attributes.items():
-            if key not in ["coefficient_of_variation"]:
-                attribute = np.random.normal(value, coefficient_of_variation * value, num_boids)
+            if key not in ["coefficient_of_variation", "scale"]:
+                if value == 0:
+                    standard_deviation = scale
+                else:
+                    standard_deviation = coefficient_of_variation * value
+                    
+                attribute = np.random.normal(value, standard_deviation, num_boids)
                 setattr(self, key, attribute)
                 
                 # Process the key-value pair here
@@ -166,7 +172,7 @@ class Boids:
                 func = np.mean
 
             for key, _ in self.attributes.items(): #, value
-                if key not in ["coefficient_of_variation"]:
+                if key not in ["coefficient_of_variation", "scale"]:
                     trait = getattr(self, key)
                     trait_dic[key] = func(trait[parents])
                     #setattr(self, key, np.array(trait_dic[key]))
@@ -197,7 +203,7 @@ class Boids:
     
     def set_traits(self, trait_dic):
         for key, _ in self.attributes.items(): #, value
-            if key not in ["coefficient_of_variation"]:
+            if key not in ["coefficient_of_variation", "scale"]:
                 setattr(self, key, np.array(trait_dic[key]))
 
 

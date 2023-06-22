@@ -1,0 +1,2 @@
+,num_trials,max_generations,max_time_steps,render_sim_verbosity,environment,width,height,num_prey,num_predator,num_prey_crossover,num_predator_crossover,prey_selection_weight,predator_selection_weight,results_dir
+0,3,50,500,1,hard_borders,1200,1000,50,4,10,4,2,2,/home/simon/Project Space/Radboud University/Master Cognitive Computing/SS23/Natural Computation/Assignments/Project/Code/natural-computing/Results/

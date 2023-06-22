@@ -22,9 +22,22 @@ class Prey(Boids.Boids):
         self.num_boids = num_boids 
         self.attributes = attributes
         coefficient_of_variation = attributes["coefficient_of_variation"]
+        scale = attributes["scale"]
 
-        self.dodging_distance  = np.random.normal(attributes["dodging_distance"], coefficient_of_variation * attributes["dodging_distance"], num_boids) #  separation_distance 
-        self.dodging_strength = np.random.normal(attributes["dodging_strength"], coefficient_of_variation * attributes["dodging_strength"], num_boids) # separation_strength 
+        prey_specific_attributes = ["dodging_strength", "dodging_distance"]
+
+        for key, value in attributes.items():
+            if key  in prey_specific_attributes:
+                if value == 0:
+                    standard_deviation = scale
+                else:
+                    standard_deviation = coefficient_of_variation * value
+                    
+                attribute = np.random.normal(value, standard_deviation, num_boids)
+                setattr(self, key, attribute)
+
+        #self.dodging_distance  = np.random.normal(attributes["dodging_distance"], coefficient_of_variation * attributes["dodging_distance"], num_boids) #  separation_distance 
+        #self.dodging_strength = np.random.normal(attributes["dodging_strength"], coefficient_of_variation * attributes["dodging_strength"], num_boids) # separation_strength 
         
         #self.trait_names = super().get_trait_names() + ['dodging_distance', 'dodging_strength']
 
