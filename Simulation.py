@@ -476,8 +476,8 @@ if __name__ == "__main__":
 
         "num_trials" :                  5,
         "max_generations" :             100, # 50,
-        "max_time_steps" :              50000,
-        "render_sim_verbosity" :        1, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
+        "max_time_steps" :              5000,
+        "render_sim_verbosity" :        3, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
         "environment" :                 "hard_borders", #hard_borders / wrapped_borders
         "width" :                       1200,
         "height" :                      1000,
