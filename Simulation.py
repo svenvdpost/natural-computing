@@ -545,11 +545,10 @@ if __name__ == "__main__":
 
     # Define the simulation parameters
     simulation_param = {
-
         "num_trials" :                  30,
         "max_generations" :             100,
         "max_time_steps" :              20000,
-        "render_sim_verbosity" :        3, # 0: do not render any simulation; 
+        "render_sim_verbosity" :        1, # 0: do not render any simulation; 
                                            # 1: Only render evolution of traits (EoT); 
                                            # 2: render EoT and final generation simulation; 
                                            # 3: render EoT, initial and final generation simulation; 
@@ -564,7 +563,7 @@ if __name__ == "__main__":
         "prey_selection_weight" :       2, 
         "predator_selection_weight" :   2, 
         "results_dir" :                 os.path.join(os.path.dirname(__file__), 'Results/'),
-        "record_generations":           True
+        "record_generations":           False
     }
 
     # Define initial prey attributes
