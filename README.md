@@ -8,11 +8,11 @@ In this file there are several parameters given, these parameters can be changed
 The simulation has a few dependencies, such as the `pygame` game engine. All these libraries can be installed using `pip`.
 
 A few important parameters are:
-```
-render_sim_verbosity: the different render options for the simulations, changing this value changes whether the Evolution of Traits plot or the PyGame simulation itself will be rendered
-result_dir: The name of the directory where the results will be written to, by default this is Results/
-record_generations: Whether the last and first generation of a trial are recorded and save to the result_dir
-```
+
+`render_sim_verbosity`: the different render options for the simulations, changing this value changes whether the Evolution of Traits plot or the PyGame simulation itself will be rendered
+`result_dir`: The name of the directory where the results will be written to, by default this is `Results/`
+`record_generations`: Whether the last and first generation of a trial are recorded and save to the `result_dir`
+
 
 
 ## Screenshot of the simulation
