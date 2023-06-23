@@ -12,6 +12,7 @@ import random
 from pygame_screen_recorder import pygame_screen_recorder as pgr
 import scipy
 import statannot
+import time
 
 import Prey
 import Predator
@@ -333,7 +334,11 @@ class Simulation:
 
             # init the screen captureres
             self.init_screen_capture(trial)
- 
+
+            # get the start time
+            start_time_generation = time.time()
+            start_time_trial = time.time()
+
             while not exit:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -403,7 +408,7 @@ class Simulation:
 
                     # if one of the classes only has a population of 1 or less, stop the simulation
                     if self.num_prey <= 1 or self.num_predator <= 1:
-                        event_message = "extinction! num_prey = " + self.num_prey + "num_predator = " + self.num_predator
+                        event_message = "extinction! num_prey = " + self.num_prey + "num_predator = " + self.num_predator + f"Execution time: {end_time_trial - start_time_trial:.2f}"
                         prey_trait_record, predator_trait_record, mean_prey_traits, mean_predator_traits= self.finalize_generation(trial, event_message, prey_trait_record, predator_trait_record, normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits) 
 
                         # Reset simulation parameter
@@ -416,10 +421,13 @@ class Simulation:
 
                         trial += 1
                         self.init_screen_capture(trial)
+                        start_time_trial = time.time()
                         continue
                         
                     elif generation > self.max_generations:
-                        event_message = "max generations reached"
+                        end_time_trial = time.time()
+
+                        event_message = f"max generations reached. Execution time: {end_time_trial - start_time_trial:.2f} seconds"
                         prey_trait_record, predator_trait_record, mean_prey_traits, mean_predator_traits = self.finalize_generation(trial, event_message, prey_trait_record, predator_trait_record, normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits) 
                         
                         # Reset simulation parameter
@@ -435,6 +443,7 @@ class Simulation:
                         continue
 
                     else: 
+                        end_time_generation = time.time()
                         if len(elimination_order) >= self.num_prey:
                             event = 'genocide'
                         elif time_step >= self.max_time_steps:
@@ -454,7 +463,7 @@ class Simulation:
                         prey_survival_times = []
 
                     # print generation info
-                    print(f"Trial: {trial} / {self.num_trials}   Generation: {generation} / {self.max_generations}   Event: {event}   Number prey: {self.num_prey}   Number predators: {self.num_predator}")
+                    print(f"Trial: {trial} / {self.num_trials}   Generation: {generation} / {self.max_generations}   Event: {event}   Execution time: {end_time_generation - start_time_generation:.2f} seconds ") #Number prey: {self.num_prey}   Number predators: {self.num_predator}")
 
                     # save videos
                     if generation == 1 and self.record_generations:
@@ -464,6 +473,7 @@ class Simulation:
 
                     # update the generation timer
                     generation += 1
+                    start_time_generation = time.time()
 
                 time_step += 1
 
@@ -493,10 +503,10 @@ if __name__ == "__main__":
         "num_trials" :                  50,
         "max_generations" :             100,#100, # 50,
         "max_time_steps" :              50000,#000,
-        "render_sim_verbosity" :        1, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
+        "render_sim_verbosity" :        3, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
         "environment" :                 "hard_borders", #hard_borders / wrapped_borders
-        "width" :                       1200,
-        "height" :                      1000,
+        "width" :                       800,
+        "height" :                      600,
         "num_prey" :                    50,
         "num_predator" :                4,
         "num_prey_crossover" :          10,
@@ -508,7 +518,7 @@ if __name__ == "__main__":
     }
 
     prey_attributes = {
-        "coefficient_of_variation": 0.4,
+        "coefficient_of_variation": 0.25,
         "scale" :                   0.01,
         "avoid_border_distance":    50,
         "alignment_distance":       50,
@@ -525,7 +535,7 @@ if __name__ == "__main__":
     }
 
     predator_attributes = {
-        "coefficient_of_variation": 0.4,
+        "coefficient_of_variation": 0.25,
         "scale" :                   0.01,
         "avoid_border_distance":    50,
         "alignment_distance":       50,
@@ -544,9 +554,9 @@ if __name__ == "__main__":
 
     # Define the evolutionary/genetic parameter
     genetic_param = {
-        "prey_mutation_rate" : 0.1,
-        "predator_mutation_rate": 0.2,
-        "mutation_scale" : 0.4
+        "prey_mutation_rate" : 0.07,
+        "predator_mutation_rate": 0.15,
+        "mutation_scale" : 0.3
     }
 
     # Store all the parameter in a CSV
