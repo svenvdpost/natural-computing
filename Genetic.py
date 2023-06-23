@@ -124,9 +124,6 @@ class Genetic:
         elif procreation == "fixed":
             children = self.fixed_procreation(population, boidclass)
 
-        # reshape list from child orented to trait oriented
-        reshaped_list = [list(x) for x in zip(*list(map(lambda x: x.values(), children)))]
-
         # store the children traits in a dictionary
         traits_dic = {}
         for child in children:
