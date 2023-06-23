@@ -10,9 +10,10 @@ import copy
 import pickle
 import random
 from pygame_screen_recorder import pygame_screen_recorder as pgr
-import scipy
-import statannot
 import time
+import seaborn as sns
+import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 import Prey
 import Predator
@@ -24,6 +25,7 @@ class Simulation:
 
     def __init__(self, simulation_param, prey_attributes, predator_attributes) -> None:
 
+        # Initialize parameter
         self.num_trials =                   simulation_param["num_trials"] 
         self.max_generations =              simulation_param["max_generations"]
         self.max_time_steps =               simulation_param["max_time_steps"]  
@@ -40,14 +42,15 @@ class Simulation:
         self.results_dir =                  simulation_param["results_dir"]
         self.record_generations =           simulation_param["record_generations"] if self.render_sim_verbosity > 1 else False
 
+        # Initialize prey boids
         self.prey_attributes = prey_attributes
         self.prey =         self.init_prey()  
 
+        # Initialize predator boids
         self.predator_attributes = predator_attributes      
         self.predators =    self.init_predators()
 
-        
-
+        # Initialize visualizations
         self.init_evolution_plot()
         self.canvas =       self.init_pygame()
         self.font =         pygame.font.SysFont('arial', 15)
@@ -58,12 +61,10 @@ class Simulation:
     def init_evolution_plot(self):
         self.fig, self.axs = plt.subplots(3, figsize=(14, 12), gridspec_kw={'height_ratios': [1, 3, 3]})
         self.traits = []
-            
-        
 
     # ---- PREY ------
     def init_prey(self):
-        # Create Boids object
+        # Create Prey object
         boids = Prey.Prey(self.num_prey, self.prey_attributes, self.environment, self.width, self.height) 
         self.initial_prey_boids = copy.deepcopy(boids)
         
@@ -111,54 +112,29 @@ class Simulation:
     def init_genetic(self, genetic_param):
         self.genetic = Genetic.Genetic(self, genetic_param["prey_mutation_rate"], genetic_param["predator_mutation_rate"], genetic_param["mutation_scale"])
 
-    # ---- RUNING THE SIMULATION -----
-    def render_and_run(self, steps):
-
-        prey_positions, prey_velocities = self.prey.run_simulation(steps)
-        pred_positions, pred_velocities = self.predators.run_simulation(steps)
-        exit = False
-
-        while not exit:
-
-            for prey_pos, prey_velo, pred_pos, pred_velo in zip(prey_positions, prey_velocities, pred_positions, pred_velocities):
-
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        exit = True
-                        
-                if exit == True:
-                    break
-
-                self.canvas.fill((255,255,255))
-
-                simulation.draw_prey(prey_pos, prey_velo)
-                simulation.draw_predators(pred_pos, pred_velo)
-
-                pygame.display.update()
-
-                time.sleep(0.05)
-
-
+    # Create a dictionary storing the boid specific traits
     def create_trait_dict(self,boid_class):
         traits = dict()
-        for key, _ in boid_class.attributes.items(): #, value
+
+        for key, _ in boid_class.attributes.items(): 
             if key not in ["coefficient_of_variation", "scale"]:
                 traits[key] = [np.mean(getattr(boid_class, key))]
         return traits
     
+    # Update the dictionary storing the boid specific traits
     def update_trait_dict(self, boid_class, crossover_idx, traits):
         mean_traits = boid_class.crossover(crossover_idx, "mean")
-        #print(f'mean_traits: {mean_traits}')
-        for key, _ in boid_class.attributes.items(): #, value
+
+        for key, _ in boid_class.attributes.items(): 
             if key not in ["coefficient_of_variation", "scale"]:
                 traits[key].append(mean_traits[key])
 
         return traits
     
+    # Scale the score of the fitness proxy to be centered around the baseline
     def scale_score(self, scores, max_score, baseline):
         
         upper_range = max_score - baseline
-
         scaled_scores = []
 
         for score in scores:
@@ -173,14 +149,6 @@ class Simulation:
         return scaled_scores
     
     def plot_evolution_of_traits(self, survival_times, prey_traits, predator_traits):
-        """
-        Plots the evolution of traits.
-        
-        Args:
-            survival_times (list): List of survival times.
-            prey_traits (dict): Dictionary of prey traits.
-            predator_traits (dict): Dictionary of predator traits.
-        """
 
         for i, ax in enumerate(self.axs):
             if i == 0:
@@ -217,6 +185,8 @@ class Simulation:
 
                     c = next(color)
                     values = traits[trait]
+
+                    # Normalize the trait at hand and compute the percentual gain/decrease
                     normalized_trait = (np.array(values) - values[0]) / np.abs(values[0]) * 100
 
                     if trait not in self.traits:
@@ -227,6 +197,7 @@ class Simulation:
                         line, = ax.plot(x, normalized_trait, label=trait, c=c, linewidth=1.5)
                         line.set_ydata(normalized_trait)
 
+                # Specify plot appearance
                 ax.set_xlabel('Generation', fontsize=14)
                 ax.set_ylabel('Normalized Trait Value', fontsize=14)
                 ax.set_title(f'Evolution of {name} Traits', fontsize=16)
@@ -250,7 +221,7 @@ class Simulation:
 
         # Save the figure
         file_name = f'trial_{trial}_trait_evolution.png'
-        self.fig.savefig(os.path.join(self.results_dir, file_name))
+        self.fig.savefig(os.path.join(self.results_dir, file_name), dpi = 300)
 
         # Reset the number of boids
         self.num_predator = self.predators.num_boids
@@ -282,30 +253,107 @@ class Simulation:
         return prey_trait_record, predator_trait_record,  mean_prey_traits, mean_predator_traits
 
 
-        
+    def plot_final_results(self, boidclass, initial_traits, final_traits):    
+        # Set seaborn style with adjusted scale
+        sns.set(style="whitegrid", font_scale=1.2, rc={"figure.figsize": (6, 4)})
 
+        # Define the color palette
+        color_palette = sns.color_palette("Set2")
 
+        # Iterate over each variable class
+        for variable_class in initial_traits.columns:
+            # Extract data for initial and final traits
+            control_group = initial_traits[variable_class].values
+            test_subject_group = final_traits[variable_class].values
 
+            # Perform normality tests
+            _, p_value_control = stats.shapiro(control_group)
+            _, p_value_test_subject = stats.shapiro(test_subject_group)
+
+            # Perform homogeneity of variances test
+            _, p_value_variance = stats.levene(control_group, test_subject_group)
+
+            # Conduct the t-test
+            if p_value_control > 0.05 and p_value_test_subject > 0.05 and p_value_variance > 0.05:
+                # All assumptions are met, use the independent samples t-test
+                _, p_value = stats.ttest_ind(control_group, test_subject_group)
+            else:
+                # Assumptions are not fully met, use Welch's t-test
+                _, p_value = stats.ttest_ind(control_group, test_subject_group, equal_var=False)
+
+            # Generate violin plots
+            data = pd.DataFrame({variable_class: list(control_group) + list(test_subject_group),
+                                    'Group': ['Baseline'] * len(control_group) + ['Final Generation'] * len(test_subject_group)})
+            # Create the figure and axes
+            fig, ax = plt.subplots()
+
+            # Create violin plot with custom color palette
+            sns.violinplot(x='Group', y=variable_class, data=data, palette=color_palette, ax=ax)
+
+            if p_value < 0.05:
+                print(f"The cohorts differ significantly for {variable_class}. P-values = {p_value}")
+                # Add bar connecting the control and subject cohorts
+                x1, x2 = 0, 1  # x-coordinates for the bar placement
+                y_max = max(max(control_group), max(test_subject_group))  # Maximum y-value of the violins
+                y_range = y_max * 1.2  # Increased y-range for more space above the violins
+                bar_height = y_range * 1.1  # Height of the bar (placed above the violins)
+                bar_tips = bar_height - (y_range * 0.02)  # Tips of the bar
+                plt.plot([x1, x1, x2, x2], [bar_tips, bar_height, bar_height, bar_tips], lw=1, c='k')
+
+                # Determine the number of asterisks based on the p-value
+                if p_value < 0.001:
+                    significance_indicator = "***"
+                elif p_value < 0.01:
+                    significance_indicator = "**"
+                elif p_value < 0.05:
+                    significance_indicator = "*"
+
+                # Add significance indicator over the bar
+                text_height = bar_height + (y_range * 0.01)  # Vertical position of the significance indicator
+                ax.text((x1 + x2) * 0.5, text_height, significance_indicator, ha='center', va='bottom', fontsize=14)
+                
+                # Adjust y-axis limits dynamically
+                y_lower, y_upper = ax.get_ylim()
+                ax.set_ylim(y_lower, y_upper + (y_range * 0.1))  # Adjust y-axis limits slightly larger
+
+            # Customize plot aesthetics
+            sns.despine()
+            ax.set_title(f"{variable_class}", fontsize=16, fontweight='bold')
+            ax.set_xlabel("Group", fontsize=14)
+            ax.set_ylabel(variable_class, fontsize=14)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+
+            # Adjust plot layout and spacing
+            plt.tight_layout()
+
+            # Save the plot
+            path = f"{self.results_dir}/{boidclass}"
+            if not os.path.isdir(path):
+                os.makedirs(path) 
+            file_name = f'{boidclass}_{variable_class}_violin_plots.png'
+            plt.savefig(os.path.join(path, file_name), dpi=300)
+            
     
     def run_forever(self):
 
+            # Initialize parameter and variables
             exit = False
-
             time_step = 1
             generation = 1
             trial = 1
-
-            prey_positions = self.prey.positions
-            prey_velocities = self.prey.velocities
-
-            predators_positions = self.predators.positions
-            predators_velocities = self.predators.velocities
 
             elimination_order = []
             prey_survival_times = []
             normalized_mean_prey_survival_times = []
 
             predator_kill_counts = np.zeros(self.num_predator)
+
+            # Get prey and predator positions and velocities
+            prey_positions = self.prey.positions
+            prey_velocities = self.prey.velocities
+
+            predators_positions = self.predators.positions
+            predators_velocities = self.predators.velocities
 
             # Get and store the average boid traits
             mean_prey_traits = self.create_trait_dict(self.prey)
@@ -383,6 +431,7 @@ class Simulation:
 
                     pygame.display.update()
 
+                    # Render the simulation
                     if generation == 1 and self.record_generations:
                         self.recrdr_first.click(self.canvas)
                     if generation == self.max_generations-1 and self.record_generations:
@@ -486,82 +535,85 @@ class Simulation:
                     prey_trait_record = pd.DataFrame(data = prey_trait_record)
                     prey_trait_record.to_csv(self.results_dir + "prey_trait_record.csv", index = False)
 
+                    self.plot_final_results("Prey", initial_prey_traits, prey_trait_record)
+                    self.plot_final_results("Predator", initial_predator_traits, predator_trait_record)
 
                     exit = True
                     print('Finished trials')
-                    #input("Press Enter to quit...")
-                    
-    #def 
-                #trial += 1
-            stop_here = []
 
 if __name__ == "__main__":
 
     # Define the simulation parameters
     simulation_param = {
 
-        "num_trials" :                  5,
-        "max_generations" :             100, # 50,
-        "max_time_steps" :              5000,
-        "render_sim_verbosity" :        3, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
-        "environment" :                 "hard_borders", #hard_borders / wrapped_borders
-        "width" :                       800,
-        "height" :                      600,
-        "num_prey" :                    50,
-        "num_predator" :                4,
-        "num_prey_crossover" :          10,
-        "num_predator_crossover" :      4,
-        "prey_selection_weight" :       2, #... better name, the higher the more weight on survival times 
-        "predator_selection_weight" :   2, # ... better name, the higher the more weight on survival times
+        "num_trials" :                  30,
+        "max_generations" :             100,
+        "max_time_steps" :              20000,
+        "render_sim_verbosity" :        3, # 0: do not render any simulation; 
+                                           # 1: Only render evolution of traits (EoT); 
+                                           # 2: render EoT and final generation simulation; 
+                                           # 3: render EoT, initial and final generation simulation; 
+                                           # 4: render EoT and each simulation
+        "environment" :                 "hard_borders", #Options: hard_borders / wrapped_borders
+        "width" :                       700,
+        "height" :                      500,
+        "num_prey" :                    40,
+        "num_predator" :                5,
+        "num_prey_crossover" :          8,
+        "num_predator_crossover" :      2,
+        "prey_selection_weight" :       2, 
+        "predator_selection_weight" :   2, 
         "results_dir" :                 os.path.join(os.path.dirname(__file__), 'Results/'),
         "record_generations":           True
     }
 
+    # Define initial prey attributes
     prey_attributes = {
         "coefficient_of_variation": 0.25,
         "scale" :                   0.01,
-        "avoid_border_distance":    50,
-        "alignment_distance":       50,
-        "cohesion_distance":        50, #100
-        "separation_distance":      50, #25
-        "dodging_distance":         50, # 100
-        "avoid_border_strength":    0.4, # 0.4
-        "alignment_strength":       0, #0.1
-        "cohesion_strength":        0, #0.001
-        "separation_strength":      0, #0.05
-        "dodging_strength":         0, #0.1
+        "avoid_border_distance":    40,
+        "alignment_distance":       40,
+        "cohesion_distance":        40, 
+        "separation_distance":      40, 
+        "dodging_distance":         40, 
+        "avoid_border_strength":    0.1, 
+        "alignment_strength":       0, 
+        "cohesion_strength":        0, 
+        "separation_strength":      0, 
+        "dodging_strength":         0, 
         "noise_strength":           0.1,
         "max_velocity":             5
     }
 
+    # Define initial predator attributes
     predator_attributes = {
         "coefficient_of_variation": 0.25,
         "scale" :                   0.01,
-        "avoid_border_distance":    50,
-        "alignment_distance":       50,
-        "cohesion_distance":        50, #100
-        "separation_distance":      50, #100
-        "hunting_distance":         50, #100
-        "elimination_distance":     10,
-        "avoid_border_strength":    0.4, #0.4
-        "alignment_strength":       0, #0.1
-        "cohesion_strength":        0, #0.001
-        "separation_strength":      0, #0.05
-        "hunting_strength":         0.1, #0.5
+        "avoid_border_distance":    40,
+        "alignment_distance":       40,
+        "cohesion_distance":        40, 
+        "separation_distance":      40, 
+        "hunting_distance":         40, 
+        "elimination_distance":     8,
+        "avoid_border_strength":    0.1, 
+        "alignment_strength":       0, 
+        "cohesion_strength":        0, 
+        "separation_strength":      0, 
+        "hunting_strength":         0.1, 
         "noise_strength":           0.1,
-        "max_velocity":             5 #6
+        "max_velocity":             5 
     }
 
     # Define the evolutionary/genetic parameter
     genetic_param = {
-        "prey_mutation_rate" : 0.07,
-        "predator_mutation_rate": 0.15,
+        "prey_mutation_rate" : 0.1,
+        "predator_mutation_rate": 0.2,
         "mutation_scale" : 0.3
     }
 
     # Store all the parameter in a CSV
     if not os.path.isdir(simulation_param["results_dir"]):
-            os.makedirs(simulation_param["results_dir"]) 
+        os.makedirs(simulation_param["results_dir"]) 
 
     df = pd.DataFrame(data = simulation_param, index = [0])
     df.to_csv(simulation_param["results_dir"] + "simulation_param.csv")

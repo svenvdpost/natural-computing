@@ -12,10 +12,10 @@ class Genetic:
 
     def __init__(self, simulation : Simulation.Simulation, mutation_rate_prey, mutation_rate_predator, mutation_scale) -> None:
         self.simulation = simulation
-        self.mutation_rate_prey = mutation_rate_prey
-        self.mutation_rate_predator = mutation_rate_predator
-        self.mutation_scale = mutation_scale
-        self.crossover_method = None
+        self.mutation_rate_prey = mutation_rate_prey # probability of prey mutating
+        self.mutation_rate_predator = mutation_rate_predator # probability of predatoro mutating
+        self.mutation_scale = mutation_scale # the mutation range (how much mutated values deviate from the inherited ones)
+        self.crossover_method = None # method of crossover for a generation
 
     # mutate the stats of the boids proportional to the mutation_rate
     def mutation(self, child, boidclass : Boids.Boids):
@@ -32,7 +32,7 @@ class Genetic:
     
     # create children from the two parents
     def make_children(self, parents, boidclass : Boids.Boids):
-        num_children = ceil(np.random.normal(5, 4))
+        num_children = ceil(np.random.normal(2, 1))
         children = []
 
         for _ in range(num_children):
@@ -56,24 +56,23 @@ class Genetic:
 
         # Predator crossover selection (select the predators that eliminated most boids)
         predator_selection_weights = predator_kill_counts**sim.predator_selection_weight
-        predator_selection_weights = np.where(predator_selection_weights == 0, 0.01, predator_selection_weights)
+        predator_selection_weights = np.where(predator_selection_weights == 0, 0.01, predator_selection_weights) # make sure there are no zero values in the probabilities
         predator_selection_probabilities = predator_selection_weights / np.sum( predator_selection_weights)
 
-        size = min(sim.num_predator_crossover, sim.num_predator)
+        size = min(sim.num_predator_crossover, sim.num_predator) # in case the new population is smaller than the last generation
 
-        predator_crossover_idx = list(np.random.choice(range(sim.num_predator),size=size,replace=False, p=predator_selection_probabilities))
+        predator_crossover_idx = list(np.random.choice(range(sim.num_predator),size=size,replace=False, p=predator_selection_probabilities))        
         
-        
-        # Prey crossover selection
+        # Prey crossover selection (select the prey that survived the longest)
         prey_selection_weights = list(np.asarray(prey_survival_times).astype('float64')**sim.prey_selection_weight)
         prey_selection_probabilities =  prey_selection_weights / np.sum( prey_selection_weights)
 
         size = min(sim.num_prey_crossover, sim.num_prey)
 
-        if len(elimination_order) >= sim.num_prey:
+        if len(elimination_order) >= sim.num_prey: # if all the prey is eaten
             prey_crossover_idx = list(np.random.choice(elimination_order,size=size,replace=False, p=prey_selection_probabilities))
 
-        elif time_step >= sim.max_time_steps:
+        elif time_step >= sim.max_time_steps: # if the maximum time steps has been reached (meaning some prey hase survived)
             survivors = list(set(range(sim.num_prey)) - set(elimination_order))
             num_select_survivors = np.min([size, len(survivors)])
 
@@ -92,19 +91,22 @@ class Genetic:
         survivors = list(set(range(self.simulation.num_prey)) - set(elimination_order))
 
         if survivors:
-            alpha_prey = np.random.choice(survivors,size=1)[0]
+            alpha_prey = np.random.choice(survivors,size=1)[0] # one of the surviving prey
         else:
-            alpha_prey = elimination_order[-1]
-        alpa_predator = np.argmax(predator_kill_counts)
+            alpha_prey = elimination_order[-1] # the last eaten prey
+
+        alpa_predator = np.argmax(predator_kill_counts) # predator with the most kills
 
         return alpha_prey, alpa_predator
 
+    # generate next generation in a natural setting: pair boid with probability of offspring
     def natural_procreation(self, population, boidclass : Boids.Boids):
         children = []
         for _, (parent1, parent2) in enumerate(self.pair_random(population)):
             children = children + self.make_children([parent1, parent2], boidclass)
         return children
 
+    # generate next generation in a fixed setting: extract mean child and fill population with copies
     def fixed_procreation(self, population, boidclass : Boids.Boids):
         mean_child = self.crossover(population, boidclass)
         children = [copy.deepcopy(mean_child) for _ in range(boidclass.num_boids)]
@@ -117,15 +119,12 @@ class Genetic:
     def next_generation(self, population, boidclass : Boids.Boids, procreation, crossover_method):
         children = []
 
-        self.crossover_method = crossover_method
+        self.crossover_method = crossover_method # set the crossover method for this generation
 
         if procreation == "natural":
             children = self.natural_procreation(population, boidclass)
         elif procreation == "fixed":
             children = self.fixed_procreation(population, boidclass)
-
-        # reshape list from child orented to trait oriented
-        reshaped_list = [list(x) for x in zip(*list(map(lambda x: x.values(), children)))]
 
         # store the children traits in a dictionary
         traits_dic = {}
@@ -136,7 +135,6 @@ class Genetic:
                 except:
                     traits_dic[trait] = [value]
 
-        #next_generation_boidclass =  boidclass.__class__(*([len(children), 0, boidclass.width, boidclass.height, boidclass.environment] + list(np.ones(len(reshaped_list))))) # innit dummy class to overwrite later
         next_generation_boidclass =  boidclass.__class__(*[len(children), boidclass.attributes, boidclass.environment, boidclass.width, boidclass.height] ) # innit dummy class to overwrite later
         next_generation_boidclass.set_traits(traits_dic)
 
