@@ -10,9 +10,10 @@ import copy
 import pickle
 import random
 from pygame_screen_recorder import pygame_screen_recorder as pgr
-import scipy
-import statannot
 import time
+import seaborn as sns
+import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 import Prey
 import Predator
@@ -250,7 +251,7 @@ class Simulation:
 
         # Save the figure
         file_name = f'trial_{trial}_trait_evolution.png'
-        self.fig.savefig(os.path.join(self.results_dir, file_name))
+        self.fig.savefig(os.path.join(self.results_dir, file_name), dpi = 300)
 
         # Reset the number of boids
         self.num_predator = self.predators.num_boids
@@ -282,10 +283,93 @@ class Simulation:
         return prey_trait_record, predator_trait_record,  mean_prey_traits, mean_predator_traits
 
 
-        
+    def plot_final_results(self, boidclass, initial_traits, final_traits):    
+        # Set seaborn style with adjusted scale
+        sns.set(style="whitegrid", font_scale=1.2, rc={"figure.figsize": (6, 4)})
 
+        # Define the color palette
+        color_palette = sns.color_palette("Set2")
 
+        # Iterate over each variable class
+        for variable_class in initial_traits.columns:
+            # Extract data for control group and test subject group
+            control_group = initial_traits[variable_class].values
+            test_subject_group = final_traits[variable_class].values
 
+            # Step 1: Check assumptions
+            # Perform normality tests
+            _, p_value_control = stats.shapiro(control_group)
+            _, p_value_test_subject = stats.shapiro(test_subject_group)
+
+            # Perform homogeneity of variances test
+            _, p_value_variance = stats.levene(control_group, test_subject_group)
+
+            # Step 2: Conduct the t-test
+            if p_value_control > 0.05 and p_value_test_subject > 0.05 and p_value_variance > 0.05:
+                # All assumptions are met, use the independent samples t-test
+                _, p_value = stats.ttest_ind(control_group, test_subject_group)
+            else:
+                # Assumptions are not fully met, use Welch's t-test
+                _, p_value = stats.ttest_ind(control_group, test_subject_group, equal_var=False)
+
+            # Step 3: Interpret the results
+            alpha = 0.05
+            
+            significance_indicator = ""  # Empty string by default
+
+            # Generate violin plots
+            data = pd.DataFrame({variable_class: list(control_group) + list(test_subject_group),
+                                    'Group': ['Baseline'] * len(control_group) + ['Final Generation'] * len(test_subject_group)})
+
+            # Create the figure and axes
+            fig, ax = plt.subplots()
+
+            # Create violin plot with custom color palette
+            sns.violinplot(x='Group', y=variable_class, data=data, palette=color_palette, ax=ax)
+
+            if p_value < alpha:
+                print(f"The cohorts differ significantly for {variable_class}. P-values = {p_value}")
+                # Add bar connecting the control and subject cohorts
+                x1, x2 = 0, 1  # x-coordinates for the bar placement
+                y_max = max(max(control_group), max(test_subject_group))  # Maximum y-value of the violins
+                y_range = y_max * 1.2  # Increased y-range for more space above the violins
+                bar_height = y_range * 1.1  # Height of the bar (placed above the violins)
+                bar_tips = bar_height - (y_range * 0.02)  # Tips of the bar
+                plt.plot([x1, x1, x2, x2], [bar_tips, bar_height, bar_height, bar_tips], lw=1, c='k')
+
+                # Determine the number of asterisks based on the p-value
+                if p_value < 0.001:
+                    significance_indicator = "***"
+                elif p_value < 0.01:
+                    significance_indicator = "**"
+                elif p_value < 0.05:
+                    significance_indicator = "*"
+
+                # Add significance indicator over the bar
+                text_height = bar_height + (y_range * 0.01)  # Vertical position of the significance indicator
+                ax.text((x1 + x2) * 0.5, text_height, significance_indicator, ha='center', va='bottom', fontsize=14)
+                
+                # Adjust y-axis limits dynamically
+                y_lower, y_upper = ax.get_ylim()
+                ax.set_ylim(y_lower, y_upper + (y_range * 0.1))  # Adjust y-axis limits slightly larger
+
+            # Customize plot aesthetics
+            sns.despine()
+            ax.set_title(f"{variable_class}", fontsize=16, fontweight='bold')
+            ax.set_xlabel("Group", fontsize=14)
+            ax.set_ylabel(variable_class, fontsize=14)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+
+            # Adjust plot layout and spacing
+            plt.tight_layout()
+
+            # Save the plot
+            path = f"{self.results_dir}/{boidclass}"
+            if not os.path.isdir(path):
+                os.makedirs(path) 
+            file_name = f'{boidclass}_{variable_class}_violin_plots.png'
+            plt.savefig(os.path.join(path, file_name), dpi=300)
+            
     
     def run_forever(self):
 
@@ -486,6 +570,8 @@ class Simulation:
                     prey_trait_record = pd.DataFrame(data = prey_trait_record)
                     prey_trait_record.to_csv(self.results_dir + "prey_trait_record.csv", index = False)
 
+                    self.plot_final_results("Prey", initial_prey_traits, prey_trait_record)
+                    self.plot_final_results("Predator", initial_predator_traits, predator_trait_record)
 
                     exit = True
                     print('Finished trials')
@@ -505,14 +591,14 @@ if __name__ == "__main__":
         "max_time_steps" :              50000,#000,
         "render_sim_verbosity" :        3, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
         "environment" :                 "hard_borders", #hard_borders / wrapped_borders
-        "width" :                       800,
-        "height" :                      600,
+        "width" :                       600,
+        "height" :                      400,
         "num_prey" :                    50,
-        "num_predator" :                4,
-        "num_prey_crossover" :          10,
-        "num_predator_crossover" :      4,
-        "prey_selection_weight" :       2, #... better name, the higher the more weight on survival times 
-        "predator_selection_weight" :   2, # ... better name, the higher the more weight on survival times
+        "num_predator" :                10,
+        "num_prey_crossover" :          5,
+        "num_predator_crossover" :      2,
+        "prey_selection_weight" :       2, 
+        "predator_selection_weight" :   2, 
         "results_dir" :                 os.path.join(os.path.dirname(__file__), 'Results/'),
         "record_generations":           True
     }
@@ -520,12 +606,12 @@ if __name__ == "__main__":
     prey_attributes = {
         "coefficient_of_variation": 0.25,
         "scale" :                   0.01,
-        "avoid_border_distance":    50,
-        "alignment_distance":       50,
-        "cohesion_distance":        50, #100
-        "separation_distance":      50, #25
-        "dodging_distance":         50, # 100
-        "avoid_border_strength":    0.4, # 0.4
+        "avoid_border_distance":    40,
+        "alignment_distance":       40,
+        "cohesion_distance":        40, #100
+        "separation_distance":      40, #25
+        "dodging_distance":         40, # 100
+        "avoid_border_strength":    0.1, # 0.4
         "alignment_strength":       0, #0.1
         "cohesion_strength":        0, #0.001
         "separation_strength":      0, #0.05
@@ -537,13 +623,13 @@ if __name__ == "__main__":
     predator_attributes = {
         "coefficient_of_variation": 0.25,
         "scale" :                   0.01,
-        "avoid_border_distance":    50,
-        "alignment_distance":       50,
-        "cohesion_distance":        50, #100
-        "separation_distance":      50, #100
-        "hunting_distance":         50, #100
-        "elimination_distance":     10,
-        "avoid_border_strength":    0.4, #0.4
+        "avoid_border_distance":    40,
+        "alignment_distance":       40,
+        "cohesion_distance":        40, #100
+        "separation_distance":      40, #100
+        "hunting_distance":         40, #100
+        "elimination_distance":     8,
+        "avoid_border_strength":    0.1, #0.4
         "alignment_strength":       0, #0.1
         "cohesion_strength":        0, #0.001
         "separation_strength":      0, #0.05
@@ -556,12 +642,12 @@ if __name__ == "__main__":
     genetic_param = {
         "prey_mutation_rate" : 0.07,
         "predator_mutation_rate": 0.15,
-        "mutation_scale" : 0.3
+        "mutation_scale" : 0.25
     }
 
     # Store all the parameter in a CSV
     if not os.path.isdir(simulation_param["results_dir"]):
-            os.makedirs(simulation_param["results_dir"]) 
+        os.makedirs(simulation_param["results_dir"]) 
 
     df = pd.DataFrame(data = simulation_param, index = [0])
     df.to_csv(simulation_param["results_dir"] + "simulation_param.csv")
