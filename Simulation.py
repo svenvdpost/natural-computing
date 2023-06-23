@@ -10,6 +10,8 @@ import copy
 import pickle
 import random
 from pygame_screen_recorder import pygame_screen_recorder as pgr
+import scipy
+import statannot
 
 import Prey
 import Predator
@@ -246,8 +248,6 @@ class Simulation:
         self.plot_evolution_of_traits(normalized_mean_prey_survival_times, mean_prey_traits, mean_predator_traits) 
 
         # Save the figure
-        if not os.path.isdir(self.results_dir):
-            os.makedirs(self.results_dir) 
         file_name = f'trial_{trial}_trait_evolution.png'
         self.fig.savefig(os.path.join(self.results_dir, file_name))
 
@@ -281,7 +281,6 @@ class Simulation:
         return prey_trait_record, predator_trait_record,  mean_prey_traits, mean_predator_traits
 
 
-
         
 
 
@@ -310,6 +309,23 @@ class Simulation:
             # Get and store the average boid traits
             mean_prey_traits = self.create_trait_dict(self.prey)
             mean_predator_traits = self.create_trait_dict(self.predators)
+
+            # Store and the initial boid traits
+            initial_prey_traits = dict()
+            for key, _ in self.prey.attributes.items(): #, value
+                if key not in ["coefficient_of_variation", "scale"]:
+                    initial_prey_traits[key] = getattr(self.prey, key)
+
+            initial_prey_traits = pd.DataFrame(data = initial_prey_traits)
+            initial_prey_traits.to_csv(self.results_dir + "Initial_prey_traits.csv", index=False)
+
+            initial_predator_traits = dict()
+            for key, _ in self.predators.attributes.items(): #, value
+                if key not in ["coefficient_of_variation", "scale"]:
+                    initial_predator_traits[key] = getattr(self.predators, key)
+
+            initial_predator_traits = pd.DataFrame(data = initial_predator_traits)
+            initial_predator_traits.to_csv(self.results_dir + "Initial_predator_traits.csv", index=False)
 
             # Initialize trait record
             prey_trait_record = self.create_trait_dict(self.prey)
@@ -455,17 +471,17 @@ class Simulation:
 
                     # Store the trait records as CSV
                     predator_trait_record = pd.DataFrame(data = predator_trait_record)
-                    predator_trait_record.to_csv(self.results_dir + "predator_trait_record.csv")
+                    predator_trait_record.to_csv(self.results_dir + "predator_trait_record.csv", index = False)
 
                     prey_trait_record = pd.DataFrame(data = prey_trait_record)
-                    prey_trait_record.to_csv(self.results_dir + "prey_trait_record.csv")
+                    prey_trait_record.to_csv(self.results_dir + "prey_trait_record.csv", index = False)
 
 
                     exit = True
                     print('Finished trials')
                     #input("Press Enter to quit...")
                     
-
+    #def 
                 #trial += 1
             stop_here = []
 
@@ -474,9 +490,9 @@ if __name__ == "__main__":
     # Define the simulation parameters
     simulation_param = {
 
-        "num_trials" :                  5,
-        "max_generations" :             100, # 50,
-        "max_time_steps" :              50000,
+        "num_trials" :                  50,
+        "max_generations" :             100,#100, # 50,
+        "max_time_steps" :              50000,#000,
         "render_sim_verbosity" :        1, # 0: do not render any simulation; 1: Only render evolution of traits (EoT); 2: render EoT and final generation simulation; 3: render EoT, initial and final generation simulation; 4: render EoT and each simulation
         "environment" :                 "hard_borders", #hard_borders / wrapped_borders
         "width" :                       1200,
@@ -534,6 +550,9 @@ if __name__ == "__main__":
     }
 
     # Store all the parameter in a CSV
+    if not os.path.isdir(simulation_param["results_dir"]):
+            os.makedirs(simulation_param["results_dir"]) 
+
     df = pd.DataFrame(data = simulation_param, index = [0])
     df.to_csv(simulation_param["results_dir"] + "simulation_param.csv")
 
