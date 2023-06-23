@@ -1,2 +1,7 @@
 
 *.pyc
+Results/genetic_param.csv
+Results/predator_attributes.csv
+Results/prey_attributes.csv
+Results/simulation_param.csv
+Results/trial_1_trait_evolution.png

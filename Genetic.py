@@ -65,7 +65,7 @@ class Genetic:
         
         
         # Prey crossover selection
-        prey_selection_weights = list(np.array(prey_survival_times)**sim.prey_selection_weight)
+        prey_selection_weights = list(np.asarray(prey_survival_times).astype('float64')**sim.prey_selection_weight)
         prey_selection_probabilities =  prey_selection_weights / np.sum( prey_selection_weights)
 
         size = min(sim.num_prey_crossover, sim.num_prey)
