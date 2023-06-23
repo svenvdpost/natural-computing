@@ -11,4 +11,4 @@ The code can be run by simply running the Simulation.py file. In this file there
 
 
 ## Results
-When running the code, resulting graphs and csv files of the trait evolution will be written to the folder Results/ 
+When running the code, resulting graphs and csv files of the trait evolution will be written to the folder `Results/ `
